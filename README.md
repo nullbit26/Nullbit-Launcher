@@ -1,4 +1,4 @@
-# NULLBIT LAUNCHER v3.0.3 - Cyberpunk Edition
+# NULLBIT LAUNCHER v3.0.3
 
 **Professional AI Bot Management Interface for Minecraft**
 
