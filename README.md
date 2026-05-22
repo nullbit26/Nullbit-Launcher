@@ -1,16 +1,39 @@
-# NULLBIT LAUNCHER v3.0
+# NULLBIT LAUNCHER v3.0.3 - Cyberpunk Edition
 
 **Professional AI Bot Management Interface for Minecraft**
+
+🎮 **What's New in v3.0.3:**
+- Cyberpunk 2077 style UI with glitch effects
+- Auto bot download from GitHub/Dropbox
+- First-time setup wizard
+- Improved update system
 
 ---
 
 ## Quick Start
 
-1. Extract `NULLBIT-Launcher.exe` and `AIBot.exe` to any folder
-2. Run `NULLBIT-Launcher.exe`
-3. Enter your license key in CORE ACCESS tab
-4. Configure server connection (host, port, username)
-5. Click **LAUNCH BOT** on DASHBOARD
+### First Launch (New Users)
+1. Download and install `NULLBIT Launcher Setup 3.0.3.exe`
+2. Run launcher - it will show **WELCOME** screen with cyberpunk effects
+3. Click **AUTO INSTALL BOT** to download latest AIBot.exe automatically
+4. Or click **MANUAL INSTALL** and place AIBot.exe in the opened folder
+5. Restart launcher after bot installation
+
+### Regular Launch
+1. Run `NULLBIT-Launcher.exe`
+2. Enter license key in **CORE ACCESS** tab
+3. Configure server connection (host, port, username)
+4. Click **LAUNCH BOT** on **DASHBOARD**
+
+---
+
+## Visual Features
+
+- **Cyberpunk UI**: Red theme with gold accents, glitch effects, scanlines
+- **Animated WELCOME**: Text scramble effect (hacking/decoding style)
+- **Red NULLBIT Logo**: Pulsing animation on first-time setup
+- **Download Progress**: Real-time speed (MB/s) and progress bar
+- **Smooth Transitions**: Professional fade effects, no screen shake
 
 ---
 
@@ -52,17 +75,25 @@ To enable AI chat commands:
 
 ## Updates
 
+### First-Time Bot Installation
+When you first launch NULLBIT without AIBot.exe:
+- **Cyberpunk WELCOME screen** appears with hacking-style animations
+- **AUTO INSTALL BOT** - Downloads and installs latest bot automatically
+- **MANUAL INSTALL** - Opens launcher folder for manual file placement
+- Download shows real-time speed (MB/s) and progress
+
 ### Bot Updates (Auto)
 - Go to **UPDATE** tab
 - Click **CHECK FOR UPDATE**
 - If available — click **DOWNLOAD & INSTALL**
 - Bot updates automatically, no manual file replacement
+- Bot version shown in sidebar after update
 
-### Launcher Updates (Manual)
-- Yellow banner appears if new version available
-- Click **DOWNLOAD** → opens GitHub releases
-- Download new `NULLBIT-Launcher.exe`
-- Replace old file manually
+### Launcher Updates (Auto/Manual)
+- Yellow banner appears if new launcher version available
+- Click **DOWNLOAD** to get latest installer
+- Run new installer - it will update automatically
+- Current version shown in sidebar: `LAUNCHER v3.0.3`
 
 ---
 
@@ -82,11 +113,13 @@ To enable AI chat commands:
 
 | Problem | Solution |
 |---------|----------|
-| "EXE_NOT_FOUND" | Ensure `AIBot.exe` is in same folder as launcher |
+| "AIBOT.EXE NOT FOUND" on first launch | Click **AUTO INSTALL BOT** or place AIBot.exe manually |
 | "Direct execution blocked" | Always launch bot through NULLBIT Launcher |
 | Bot won't connect | Check host/port in CORE ACCESS |
 | AI not responding | Verify API key and Assistant ID |
 | Update fails | Run launcher as Administrator |
+| Slow download speed | Check internet connection or use Manual Install |
+| Launcher shows old version after update | Reinstall using latest `Setup 3.0.3.exe`
 
 ---
 
@@ -106,4 +139,12 @@ For issues and feature requests:
 
 ---
 
+## Version History
+
+- **v3.0.3** (2024-05-22) - Cyberpunk Edition: Auto bot download, hacking effects, improved UI
+- **v3.0.0** (2024-05-20) - Initial release with basic launcher functionality
+
+---
+
 **© 2026 NULLBIT Systems**
+**Current Version: v3.0.3**
