@@ -347,14 +347,19 @@ ipcMain.handle('bot-status', async () => {
 
 // ────────────────────────────────────────────
 //  Auto-update
-// Helper: simple HTTPS JSON fetch
-function fetchJson(url) {
+// Helper: simple HTTPS JSON fetch with redirect support
+function fetchJson(url, maxRedirects = 5) {
   return new Promise((resolve, reject) => {
+    if (maxRedirects <= 0) return reject(new Error('Too many redirects'));
     https.get(url, { headers: { 'User-Agent': 'Nullbit-Launcher-GUI' } }, (res) => {
+      if ([301, 302, 307, 308].includes(res.statusCode) && res.headers.location) {
+        return fetchJson(new URL(res.headers.location, url).toString(), maxRedirects - 1).then(resolve).catch(reject);
+      }
+      if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
-        try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
+        try { resolve(JSON.parse(data)); } catch (e) { reject(new Error('JSON parse error: ' + e.message)); }
       });
     }).on('error', reject).setTimeout(10000, () => reject(new Error('Timeout')));
   });
@@ -421,7 +426,7 @@ function downloadFile(url, destPath, onProgress) {
 }
 
 ipcMain.handle('update-download', async (_event, { url, fileSize }) => {
-  const tmp = path.join(process.cwd(), 'AIBot.exe.tmp');
+  const tmp = path.join(EXE_DIR, 'AIBot.exe.tmp');
   try {
     await downloadFile(url, tmp, (pct, downloaded, total) => {
       mainWindow?.webContents.send('update-progress', { pct, downloaded, total });
