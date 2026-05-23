@@ -1133,7 +1133,8 @@ function updateInventoryUI({ fillRatio = 0, freeSlots = 0, usedSlots = 0, totalS
   if (usedEl) usedEl.textContent = usedSlots;
   if (ratioEl) ratioEl.textContent = (fillRatio * 100).toFixed(0) + '%';
   if (badge) {
-    badge.textContent = 'ONLINE';
+    const pct = Math.round(fillRatio * 100);
+    badge.textContent = pct >= 100 ? 'FULL' : pct + '% FULL';
     badge.classList.add('online');
   }
 }
