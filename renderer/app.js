@@ -782,6 +782,7 @@ function setBotRunning(running, force = false) {
     if (tbWrap) tbWrap.className = 'titlebar-status online';
     if (tbTxt)  tbTxt.textContent = 'ONLINE';
     stopAllDots();
+    _bootStatusBar();
   } else {
     if (btn) {
       btn.classList.remove('running');
@@ -797,6 +798,7 @@ function setBotRunning(running, force = false) {
     }
     stopUptime();
     resetBotStatusWidget();
+    _offlineStatusBar();
     if (tbWrap) tbWrap.className = 'titlebar-status offline';
     if (tbTxt)  tbTxt.textContent = 'OFFLINE';
   }
@@ -1040,6 +1042,71 @@ function resetBotStatusWidget() {
   if (hpVal)   { hpVal.textContent = '—'; hpVal.className = 'lst-val lst-hp'; }
   if (foodVal) foodVal.textContent = '—';
   if (badge)   { badge.textContent = 'OFFLINE'; badge.className = 'lst-state state-offline'; }
+}
+
+let _statusBootTimer = null;
+let _statusDotsTimer = null;
+const _GLITCH_CHARS  = '▓▒░█▄▀■□◈◉⬡';
+
+function _offlineStatusBar() {
+  const bar = document.getElementById('bot-statusbar');
+  if (!bar) return;
+  if (_statusBootTimer) { clearTimeout(_statusBootTimer); _statusBootTimer = null; }
+  if (_statusDotsTimer) { clearInterval(_statusDotsTimer); _statusDotsTimer = null; }
+  bar.classList.remove('bot-booting', 'bot-online');
+  bar.classList.add('bot-offline');
+}
+
+function _bootStatusBar() {
+  const bar     = document.getElementById('bot-statusbar');
+  const hpVal   = document.getElementById('bsw-hp-val');
+  const foodVal = document.getElementById('bsw-food-val');
+  const segEl   = document.getElementById('inv-segments');
+  if (!bar) return;
+
+  bar.classList.remove('bot-offline', 'bot-online');
+  bar.classList.add('bot-booting');
+
+  // Show animated dots while waiting for data
+  let dots = 0;
+  const targets = [hpVal, foodVal];
+  targets.forEach(el => { if (el) el.textContent = '·'; });
+  if (segEl) segEl.textContent = '············';
+
+  _statusDotsTimer = setInterval(() => {
+    dots = (dots + 1) % 4;
+    const d = '·'.repeat(dots || 1);
+    targets.forEach(el => { if (el) el.textContent = d; });
+  }, 280);
+
+  // After 2s glitch-reveal: scramble each element then settle
+  _statusBootTimer = setTimeout(() => {
+    if (_statusDotsTimer) { clearInterval(_statusDotsTimer); _statusDotsTimer = null; }
+    bar.classList.remove('bot-booting');
+    bar.classList.add('bot-online');
+    // Glitch-reveal each value
+    _glitchReveal(hpVal, '—');
+    _glitchReveal(foodVal, '—');
+    if (segEl) _glitchReveal(segEl, '▱▱▱▱▱▱▱▱▱▱▱▱');
+  }, 2000);
+}
+
+function _glitchReveal(el, finalText) {
+  if (!el) return;
+  let frame = 0;
+  const total = 12;
+  const iv = setInterval(() => {
+    frame++;
+    if (frame >= total) {
+      el.textContent = finalText;
+      clearInterval(iv);
+      return;
+    }
+    // Random glitch chars
+    el.textContent = Array.from({ length: Math.max(1, finalText.length) }, () =>
+      _GLITCH_CHARS[Math.floor(Math.random() * _GLITCH_CHARS.length)]
+    ).join('');
+  }, 60);
 }
 
 function drawChart() {
@@ -2558,6 +2625,9 @@ async function checkBotExists() {
   setBotRunning(s.running, true);
   _syncCoreAccordion(document.querySelector('.nav-item.active')?.dataset?.tab || '');
   
+  // Initialize statusbar state
+  if (!s.running) _offlineStatusBar();
+
   // Initialize diagnostics to OFFLINE
   updateDiagScores({ threatScore: 0, survivalScore: 0, resourceScore: 0, status: 'OFFLINE' });
   updateCombatDiag({ mode: '—', targetDist: null, weapon: '—', lastAction: '—', status: 'OFFLINE' });

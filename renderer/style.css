@@ -2791,6 +2791,37 @@ input:checked + .toggle-slider::before {
   flex: 1;
   min-width: 0;
 }
+.launch-status .lst-row {
+  transition: opacity 0.3s;
+}
+.launch-status.bot-offline .lst-row {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.launch-status.bot-booting .lst-row {
+  visibility: visible;
+  opacity: 1;
+  animation: statusBootReveal 0.08s steps(1) infinite;
+}
+.launch-status.bot-online .lst-row {
+  visibility: visible;
+  opacity: 1;
+  animation: none;
+}
+@keyframes statusBootReveal {
+  0%   { opacity: 1; filter: brightness(1.8) hue-rotate(0deg); }
+  25%  { opacity: 0.6; filter: brightness(2.5) hue-rotate(90deg); }
+  50%  { opacity: 1; filter: brightness(1.2) hue-rotate(180deg); }
+  75%  { opacity: 0.8; filter: brightness(3) hue-rotate(270deg); }
+  100% { opacity: 1; filter: brightness(1) hue-rotate(360deg); }
+}
+@keyframes statusDotsAnim {
+  0%   { content: '·'; }
+  33%  { content: '··'; }
+  66%  { content: '···'; }
+  100% { content: '·'; }
+}
 .lst-row {
   display: flex;
   align-items: center;
