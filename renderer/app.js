@@ -1012,9 +1012,7 @@ const STATE_CLASS_MAP = {
 };
 
 function updateBotStatus({ hp = 0, maxHp = 20, food = 0, state = 'IDLE' }) {
-  const hpChip  = document.getElementById('bsw-chip-hp');
   const hpVal   = document.getElementById('bsw-hp-val');
-  const hpIcon  = document.getElementById('bsw-hp-icon');
   const foodVal = document.getElementById('bsw-food-val');
   const badge   = document.getElementById('bsw-state-badge');
   if (!hpVal) return;
@@ -1024,41 +1022,24 @@ function updateBotStatus({ hp = 0, maxHp = 20, food = 0, state = 'IDLE' }) {
   hpVal.textContent   = `${Math.round(hp)} / ${Math.round(maxHp)}`;
   foodVal.textContent = Math.round(food);
 
-  if (hpChip) {
-    hpChip.classList.remove('hp-high', 'hp-mid', 'hp-crit');
-    if (hpPct > 60)      hpChip.classList.add('hp-high');
-    else if (hpPct > 30) hpChip.classList.add('hp-mid');
-    else                 hpChip.classList.add('hp-crit');
-  }
-  if (hpIcon) {
-    hpIcon.style.color      = hpPct > 60 ? '#3ae07a' : hpPct > 30 ? 'var(--accent)' : '#ff4444';
-    hpIcon.style.textShadow = hpPct > 60
-      ? '0 0 8px rgba(58,224,122,0.9)'
-      : hpPct > 30
-      ? '0 0 8px rgba(255,160,0,0.8)'
-      : '0 0 10px rgba(255,50,50,1)';
-    hpIcon.style.animation  = hpPct <= 30 ? 'critBarPulse 0.6s ease-in-out infinite alternate' : '';
-  }
+  hpVal.classList.remove('hp-high', 'hp-mid', 'hp-crit');
+  if (hpPct > 60)      hpVal.classList.add('hp-high');
+  else if (hpPct > 30) hpVal.classList.add('hp-mid');
+  else                 hpVal.classList.add('hp-crit');
 
   if (badge) {
     badge.textContent = state;
-    badge.className = 'bsw-state-badge ' + (STATE_CLASS_MAP[state] || 'state-idle');
+    badge.className = 'bsb-state ' + (STATE_CLASS_MAP[state] || 'state-idle');
   }
 }
 
 function resetBotStatusWidget() {
-  const hpBar   = document.getElementById('bsw-hp-bar');
   const hpVal   = document.getElementById('bsw-hp-val');
-  const hpGlow  = document.getElementById('bsw-hp-glow');
-  const foodBar = document.getElementById('bsw-food-bar');
   const foodVal = document.getElementById('bsw-food-val');
   const badge   = document.getElementById('bsw-state-badge');
-  if (hpBar)   { hpBar.style.width = '0%'; hpBar.className = 'bsw-hp-bar'; }
-  if (hpGlow)  hpGlow.style.right = 'calc(100% - 3px)';
-  if (foodBar) foodBar.style.width = '0%';
-  if (hpVal)   hpVal.textContent   = '—';
+  if (hpVal)   { hpVal.textContent = '—'; hpVal.className = 'bsb-val bsb-hp-val'; }
   if (foodVal) foodVal.textContent = '—';
-  if (badge)   { badge.textContent = 'OFFLINE'; badge.className = 'bsw-state-badge state-offline'; }
+  if (badge)   { badge.textContent = 'OFFLINE'; badge.className = 'bsb-state state-offline'; }
 }
 
 function drawChart() {

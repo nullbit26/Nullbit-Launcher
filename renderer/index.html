@@ -266,7 +266,6 @@
           <span id="btn-launch-text">▶ LAUNCH BOT</span>
         </button>
 
-        <span class="bsw-state-badge state-offline" id="bsw-state-badge">OFFLINE</span>
       </div>
 
       <!-- TACTICAL SCORES -->
@@ -296,32 +295,27 @@
           <div class="score-val" id="val-resource">0.00</div>
         </div>
       </div>
-      <div class="score-note">Live data — updates automatically while the bot is active.</div>
-
-      <!-- INVENTORY STATUS -->
-      <div class="section-header" style="margin-top:16px">
-        <span class="header-tag">[ INV ]</span> INVENTORY STATUS
-        <span class="inv-status-badge" id="inv-status-badge">OFFLINE</span>
-      </div>
-      <div class="inv-panel">
-        <div class="inv-bar-wrap">
-          <div class="inv-bar-fill" id="inv-bar-fill" style="width:0%"></div>
-          <div class="inv-bar-text" id="inv-bar-text">0 / 36 slots</div>
+      <!-- BOT STATUS BAR -->
+      <div class="bot-statusbar" id="bot-statusbar">
+        <div class="bsb-inv">
+          <span class="bsb-label">INV</span>
+          <div class="bsb-inv-bar-wrap">
+            <div class="bsb-inv-bar" id="inv-bar-fill" style="width:0%"></div>
+          </div>
+          <span class="bsb-val" id="inv-bar-text">0 / 36</span>
         </div>
-        <div class="inv-stats">
-          <div class="inv-stat">
-            <span class="inv-stat-label">FREE SLOTS</span>
-            <span class="inv-stat-val" id="inv-free">—</span>
-          </div>
-          <div class="inv-stat">
-            <span class="inv-stat-label">USED SLOTS</span>
-            <span class="inv-stat-val" id="inv-used">—</span>
-          </div>
-          <div class="inv-stat">
-            <span class="inv-stat-label">FILL RATIO</span>
-            <span class="inv-stat-val" id="inv-ratio">—</span>
-          </div>
+        <div class="bsb-sep"></div>
+        <div class="bsb-stat">
+          <span class="bsb-label">HP</span>
+          <span class="bsb-val bsb-hp-val" id="bsw-hp-val">—</span>
         </div>
+        <div class="bsb-sep"></div>
+        <div class="bsb-stat">
+          <span class="bsb-label">FOOD</span>
+          <span class="bsb-val" id="bsw-food-val">—</span>
+        </div>
+        <div class="bsb-sep"></div>
+        <div class="bsb-state" id="bsw-state-badge">OFFLINE</div>
       </div>
 
       <div class="chart-wrap">
