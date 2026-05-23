@@ -1053,8 +1053,13 @@ function _offlineStatusBar() {
   if (!bar) return;
   if (_statusBootTimer) { clearTimeout(_statusBootTimer); _statusBootTimer = null; }
   if (_statusDotsTimer) { clearInterval(_statusDotsTimer); _statusDotsTimer = null; }
-  bar.classList.remove('bot-booting', 'bot-online');
-  bar.classList.add('bot-offline');
+  // Play shutdown animation then hide
+  bar.classList.remove('bot-booting', 'bot-online', 'bot-offline');
+  bar.classList.add('bot-shutdown');
+  setTimeout(() => {
+    bar.classList.remove('bot-shutdown');
+    bar.classList.add('bot-offline');
+  }, 650);
 }
 
 function _bootStatusBar() {
