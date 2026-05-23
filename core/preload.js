@@ -32,9 +32,11 @@ contextBridge.exposeInMainWorld('launcher', {
   onAutoUpdateProgress:  (cb) => ipcRenderer.on('auto-update-progress',  (_e, d) => cb(d)),
   onAutoUpdateReady:     (cb) => ipcRenderer.on('auto-update-ready',     (_e, d) => cb(d)),
   onAutoUpdateReadyOnce: (cb) => ipcRenderer.once('auto-update-ready',   (_e, d) => cb(d)),
+  onAutoUpdateError:     (cb) => ipcRenderer.once('auto-update-error',   (_e, d) => cb(d)),
   removeUpdateListeners: () => {
     ipcRenderer.removeAllListeners('auto-update-progress');
     ipcRenderer.removeAllListeners('auto-update-ready');
+    ipcRenderer.removeAllListeners('auto-update-error');
   },
 
   // Manual install helpers

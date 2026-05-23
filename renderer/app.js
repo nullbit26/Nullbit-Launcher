@@ -1851,6 +1851,17 @@ async function installLauncherUpdate() {
     if (sizeText) sizeText.textContent = `${(Math.random()*30+10).toFixed(2)} MB / ~45.00 MB`;
   });
 
+  // Handle updater errors — show in log and restore UI
+  launcher.onAutoUpdateError((errMsg) => {
+    errLog('[UPDATER] ERROR: ' + errMsg);
+    showToast('UPDATE ERROR: ' + errMsg, 'err', 6000);
+    launcher.removeUpdateListeners();
+    if (normalContent) normalContent.style.display = 'flex';
+    if (downloadState) downloadState.style.display = 'none';
+    if (btn) btn.disabled = false;
+    _installInProgress = false;
+  });
+
   // Fire once when download completes — then install
   launcher.onAutoUpdateReadyOnce(() => {
     _launcherUpdateReady = true;

@@ -232,6 +232,7 @@ app.whenReady().then(() => {
   autoUpdater.on('error', (err) => {
     console.error('[AUTO-UPDATE] Error:', err);
     console.error('[AUTO-UPDATE] Error stack:', err.stack);
+    mainWindow?.webContents.send('auto-update-error', err.message || String(err));
   });
   
   createSplash();
