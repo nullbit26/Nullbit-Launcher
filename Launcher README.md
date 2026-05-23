@@ -1,34 +1,35 @@
-# NULLBIT LAUNCHER v3.0.7 - Cyberpunk Edition
+# NULLBIT LAUNCHER v3.0.23 - Cyberpunk Edition
 
 **Professional AI Bot Management Interface for Minecraft**
 
-🎮 **What's New in v3.0.7:**
+🎮 **What's New in v3.0.23:**
+- **Cyberpunk Glitch Banner**: Update banner appears/dismisses with clip-path glitch, chromatic aberration, scaleY bounce
+- **Animated Progress Bar**: Dark shimmer body + gold spark sweep (`cyberSpark`) during bot download
+- **Fix**: Removed duplicate `downloadFile` — bot updates now install reliably on first attempt
+
+🎮 **Previous v3.0.22:**
+- Fixed update progress bar — used wrong IPC listener (`launcher.on` → `launcher.onUpdateProgress`)
+
+🎮 **Previous v3.0.21:**
+- Fixed update banner showing launcher row when no launcher update exists
+- Fixed version string formatting (removed redundant `v` prefix)
+
+🎮 **Previous v3.0.20:**
+- Heat gradient tuning sliders with OVERDRIVE/MINIMUM badges
+- Logo glitch boot animation
+- EN localization in Advanced tab
+
+🎮 **Previous v3.0.7:**
 - **NEURAL Tab**: Live parameter panel for real-time bot behavior tuning
   - Sub-item under CORE ACCESS in sidebar
   - 5 sections: COMBAT FLEE, PVP, NAVIGATION, MINING, AI (22 parameters total)
   - SAVE applies changes to running bot in ~300ms — no restart needed
-  - Mining params (BRANCH_LENGTH etc.) take effect on next bot start
-
-🎮 **Previous v3.0.6:**
-- Fixed duplicate `nsis-install-update` IPC handler crash on startup
-- Switched launcher auto-update to native NSIS `electron-updater` flow
-
-🎮 **Previous v3.0.5:**
-- Added cyberpunk full-screen restart modal after bot download
-- Fixed telemetry OFFLINE status
 
 🎮 **Previous v3.0.4:**
 - **DIAGNOSTICS Tab**: Neural Diagnostics with real-time telemetry
   - Tactical Weights, Combat Telemetry, System Watchdog
   - Expedition stats, Critical Events log, User Override status
 - **Real Terminal Logic**: Animated dots only on active process
-- **STOP BOT Fix**: Correctly handles manual stop vs crash
-
-🎮 **Previous v3.0.3:**
-- Cyberpunk 2077 style UI with glitch effects
-- Auto bot download from GitHub/Dropbox
-- First-time setup wizard
-- Improved update system
 
 ---
 
@@ -192,14 +193,18 @@ For issues and feature requests:
 
 ## Version History
 
-- **v3.0.7** (2026-05-23) - NEURAL Tab: live bot parameter tuning, hot-reload, BranchMineJob params exposed
+- **v3.0.23** (2026-05-23) - Cyberpunk glitch banner animations, animated progress bar, fix bot update install
+- **v3.0.22** (2026-05-23) - Fixed update progress bar IPC listener
+- **v3.0.21** (2026-05-23) - Fixed banner display logic and version formatting
+- **v3.0.20** (2026-05-23) - Heat gradient sliders, logo glitch animation, EN localization
+- **v3.0.7** (2026-05-23) - NEURAL Tab: live bot parameter tuning, hot-reload
 - **v3.0.6** (2026-05-22) - Fixed duplicate IPC handler crash, NSIS auto-update
 - **v3.0.5** (2026-05-22) - Restart modal after bot download, telemetry OFFLINE fix
 - **v3.0.4** (2026-05-21) - DIAGNOSTICS tab, real terminal logic
-- **v3.0.3** (2026-05-22) - Cyberpunk Edition: Auto bot download, hacking effects, improved UI
-- **v3.0.0** (2026-05-20) - Initial release with basic launcher functionality
+- **v3.0.3** (2026-05-22) - Cyberpunk Edition: Auto bot download, hacking effects
+- **v3.0.0** (2026-05-20) - Initial release
 
 ---
 
 **© 2026 NULLBIT Systems**
-**Current Version: v3.0.7**
+**Current Version: v3.0.23**
