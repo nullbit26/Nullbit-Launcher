@@ -29,7 +29,8 @@
 
 ## Visual Features
 
-- **Cyberpunk UI**: Red theme with gold accents, glitch effects, scanlines
+- **Modern UI**: Red theme with gold accents, glitch effects, scanlines
+
   
 <img width="1204" height="799" alt="image" src="https://github.com/user-attachments/assets/267acc51-4ee5-4b30-8b5d-5d00da9c05c8" />
 
@@ -45,7 +46,7 @@
 - Windows 10/11 (64-bit)
 - 4GB RAM minimum
 - Internet connection for AI features
-- Minecraft Java Edition server (1.16.5 - 1.20.4)
+- Minecraft Java Edition server (1.16.5 - 1.21.11)
 
 ---
 
@@ -69,10 +70,13 @@
 ### AI Setup (Optional)
 
 To enable AI chat commands:
-1. Get API key: https://platform.openai.com/api-keys
-2. Create assistant: https://platform.openai.com/assistants
-3. Copy IDs to AI CONFIG section
-4. Save and restart bot
+1. Get API key:
+https://platform.openai.com/api-keys
+https://build.nvidia.com/models
+3. Create assistant:
+https://platform.openai.com/assistants
+5. Copy IDs to AI CONFIG section
+6. Save and restart bot
 
 ---
 
