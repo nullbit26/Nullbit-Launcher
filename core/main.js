@@ -629,7 +629,8 @@ ipcMain.handle('download-bot', async (event) => {
       });
     }
     
-    return { ok: true, version: release.tag_name };
+    const version = (release.tag_name || '').replace(/^v/, '');
+    return { ok: true, version };
   } catch (e) {
     return { error: e.message };
   }

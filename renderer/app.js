@@ -2174,6 +2174,13 @@ async function downloadBot() {
       
       // Stop all animated dots when download completes
       stopAllDots();
+
+      // Save version to config so checkUpdate won't re-trigger
+      if (result.version && _config) {
+        _config.bot_version = result.version;
+        await launcher.saveConfig(_config);
+        sysLog('[SYSTEM] Bot version saved to config: ' + result.version);
+      }
       
       // Update version badge in UI
       const botVersionBadge = document.getElementById('version-badge');

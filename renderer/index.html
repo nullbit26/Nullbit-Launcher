@@ -55,27 +55,39 @@
   <div class="update-banner-content" id="update-normal-content">
     <!-- Launcher row -->
     <div class="update-banner-row" id="launcher-update-row">
-      <span class="update-banner-label">↑ UPDATE</span>
-      <span class="update-banner-tag">LAUNCHER</span>
-      <span class="update-banner-version" id="launcher-new-version"></span>
-      <div class="update-banner-actions">
+      <div class="update-banner-left">
+        <span class="update-banner-arrow">↑</span>
+        <span class="update-banner-label" data-text="UPDATE">UPDATE</span>
+        <span class="update-banner-sep">·</span>
+        <span class="update-banner-tag" data-text="LAUNCHER">LAUNCHER</span>
+        <span class="update-banner-version" id="launcher-new-version"></span>
+      </div>
+      <div class="update-banner-right">
         <button class="update-banner-btn" id="launcher-install-btn" onclick="installLauncherUpdate()">INSTALL</button>
         <a class="update-banner-link" id="launcher-update-link" href="#" target="_blank">GITHUB ↗</a>
+        <button class="update-banner-close" onclick="dismissLauncherUpdate()">✕</button>
       </div>
-      <button class="update-banner-close" onclick="dismissLauncherUpdate()">✕</button>
     </div>
-    <!-- Bot row (shown only when bot update also available) -->
+    <!-- Bot row -->
     <div class="update-banner-row update-banner-bot-row" id="bot-update-row" style="display:none">
-      <span class="update-banner-label">BOT</span>
-      <span class="update-banner-version" id="bot-new-version"></span>
-      <div class="update-banner-actions">
+      <div class="update-banner-left">
+        <span class="update-banner-arrow">↑</span>
+        <span class="update-banner-label" data-text="UPDATE">UPDATE</span>
+        <span class="update-banner-sep">·</span>
+        <span class="update-banner-tag" data-text="BOT">BOT</span>
+        <span class="update-banner-version" id="bot-new-version"></span>
+      </div>
+      <div class="update-banner-right">
         <button class="update-banner-btn" id="bot-install-btn" onclick="installBotUpdateInline()">INSTALL</button>
         <a class="update-banner-link" id="bot-update-link" href="#" target="_blank">GITHUB ↗</a>
       </div>
     </div>
-    <!-- Bot inline progress (shown during bot download) -->
+    <!-- Bot inline progress -->
     <div class="update-banner-row update-banner-bot-progress" id="bot-banner-progress" style="display:none">
-      <span class="update-banner-label">BOT</span>
+      <div class="update-banner-left">
+        <span class="update-banner-arrow">↓</span>
+        <span class="update-banner-label">BOT</span>
+      </div>
       <div class="update-banner-progress-wrap">
         <div class="update-banner-progress-bar" id="bot-banner-bar" style="width:0%"></div>
       </div>
