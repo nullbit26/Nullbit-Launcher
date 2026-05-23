@@ -11,7 +11,7 @@ let lastRipple = 0;
 document.addEventListener('click', (e) => {
   // 10/10 premium glitch on all buttons
   const btn = e.target.closest('button, .btn-launch, .btn-clear, .btn-log-action, .btn-save, .btn-action');
-  if (btn && btn.textContent.trim()) {
+  if (btn && btn.textContent.trim() && btn.id !== 'btn-launch') {
     applyGlitchEffect(btn);
   }
   if (e.target.closest('.log-resize-handle, .log-box, input, textarea, select')) return;
@@ -325,7 +325,7 @@ function _doSwitchTab(el) {
 function _syncCoreAccordion(tabName) {
   const group = document.getElementById('nav-group-core');
   if (!group) return;
-  if (tabName === 'config' || tabName === 'neural') {
+  if (botRunning || tabName === 'config' || tabName === 'neural') {
     group.classList.add('open');
   } else {
     group.classList.remove('open');
@@ -725,11 +725,12 @@ function stopAllDots() {
   });
 }
 
-function setBotRunning(running) {
+function setBotRunning(running, force = false) {
   // Guard against duplicate calls with same state
-  if (botRunning === running) return;
+  if (!force && botRunning === running) return;
   
   botRunning = running;
+  _syncCoreAccordion(document.querySelector('.nav-item.active')?.dataset?.tab || '');
   const btn    = document.getElementById('btn-launch');
   const label  = document.getElementById('btn-launch-text');
   const tbWrap = document.getElementById('titlebar-status');
@@ -747,16 +748,13 @@ function setBotRunning(running) {
     }
     // Force text update - always set to STOP BOT when running
     if (label) {
+      // Kill all pending glitch restore timers so they don't overwrite our text
+      if (label._restoreTimeout) { clearTimeout(label._restoreTimeout); label._restoreTimeout = null; }
+      if (label._restoreInterval) { clearInterval(label._restoreInterval); label._restoreInterval = null; }
+      if (label._buildInterval) { clearInterval(label._buildInterval); label._buildInterval = null; }
+      delete label.dataset.original;
+      label.style.textShadow = '';
       label.textContent = '■ STOP BOT';
-      // Clear any glitch interval that might restore old text
-      if (label._restoreTimeout) clearTimeout(label._restoreTimeout);
-      if (label._restoreInterval) clearInterval(label._restoreInterval);
-      // Double-check after small delay to catch any race conditions
-      setTimeout(() => {
-        if (botRunning && label.textContent !== '■ STOP BOT') {
-          label.textContent = '■ STOP BOT';
-        }
-      }, 100);
     }
     startUptime();
     if (tbWrap) tbWrap.className = 'titlebar-status online';
@@ -767,7 +765,14 @@ function setBotRunning(running) {
       btn.classList.remove('running');
       btn.classList.add('pulse');
     }
-    if (label) label.textContent = '▶ LAUNCH BOT';
+    if (label) {
+      if (label._restoreTimeout) { clearTimeout(label._restoreTimeout); label._restoreTimeout = null; }
+      if (label._restoreInterval) { clearInterval(label._restoreInterval); label._restoreInterval = null; }
+      if (label._buildInterval) { clearInterval(label._buildInterval); label._buildInterval = null; }
+      delete label.dataset.original;
+      label.style.textShadow = '';
+      label.textContent = '▶ LAUNCH BOT';
+    }
     stopUptime();
     if (tbWrap) tbWrap.className = 'titlebar-status offline';
     if (tbTxt)  tbTxt.textContent = 'OFFLINE';
@@ -864,8 +869,6 @@ async function toggleBot() {
       if (r.error) {
         errLog('STOP ERROR: ' + r.error);
         showToast('STOP ERROR: ' + r.error, 'err', 4000);
-      } else {
-        showToast('BOT STOPPED', 'warn', 3000);
       }
     } else {
       sysLog('INITIALIZING BOT...');
@@ -880,6 +883,7 @@ async function toggleBot() {
       } else {
         okLog('BOT PROCESS STARTED');
         showToast('BOT ONLINE', 'ok', 3000);
+        setBotRunning(true);
       }
     }
   } finally {
@@ -1672,7 +1676,7 @@ function semverGt(a, b) {
 // ────────────────────────────────────────────
 //  Launcher Update Check
 // ────────────────────────────────────────────
-const LAUNCHER_VERSION = '3.0.18';
+const LAUNCHER_VERSION = '3.0.19';
 
 async function checkLauncherUpdate() {
   try {
@@ -2347,7 +2351,7 @@ async function checkBotExists() {
   _syncTuningFromAdvanced();
   ['aggression','survival','gather','mobility'].forEach(id => _updateTuningFill(id, Number(document.getElementById('tuning-' + id)?.value || 5)));
   const s = await launcher.botStatus();
-  setBotRunning(s.running);
+  setBotRunning(s.running, true);
   _syncCoreAccordion(document.querySelector('.nav-item.active')?.dataset?.tab || '');
   
   // Initialize diagnostics to OFFLINE
