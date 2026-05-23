@@ -2783,9 +2783,9 @@ input:checked + .toggle-slider::before {
 
 /* ── LAUNCH STATUS (inline in launch-row) ── */
 .launch-status {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  display: grid;
+  grid-template-rows: auto auto;
+  align-content: center;
   gap: 5px;
   margin-left: 18px;
   flex: 1;
@@ -2800,7 +2800,6 @@ input:checked + .toggle-slider::before {
 .lst-state-row {
   display: flex;
   align-items: center;
-  padding-left: 0;
 }
 .lst-item {
   display: flex;
