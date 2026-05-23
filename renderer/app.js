@@ -1011,28 +1011,32 @@ const STATE_CLASS_MAP = {
 };
 
 function updateBotStatus({ hp = 0, maxHp = 20, food = 0, state = 'IDLE' }) {
-  const hpBar   = document.getElementById('bsw-hp-bar');
+  const hpChip  = document.getElementById('bsw-chip-hp');
   const hpVal   = document.getElementById('bsw-hp-val');
-  const hpGlow  = document.getElementById('bsw-hp-glow');
-  const foodBar = document.getElementById('bsw-food-bar');
+  const hpIcon  = document.getElementById('bsw-hp-icon');
   const foodVal = document.getElementById('bsw-food-val');
   const badge   = document.getElementById('bsw-state-badge');
-  if (!hpBar) return;
+  if (!hpVal) return;
 
-  const hpPct   = Math.min(100, Math.max(0, (hp / maxHp) * 100));
-  const foodPct = Math.min(100, Math.max(0, (food / 20) * 100));
+  const hpPct = Math.min(100, Math.max(0, (hp / maxHp) * 100));
 
-  hpBar.style.width   = hpPct + '%';
-  foodBar.style.width = foodPct + '%';
   hpVal.textContent   = `${Math.round(hp)} / ${Math.round(maxHp)}`;
   foodVal.textContent = Math.round(food);
 
-  hpBar.classList.remove('hp-high', 'hp-mid', 'hp-crit');
-  if (hpPct > 60)      hpBar.classList.add('hp-high');
-  else if (hpPct > 30) hpBar.classList.add('hp-mid');
-  else                 hpBar.classList.add('hp-crit');
-
-  if (hpGlow) hpGlow.style.right = `calc(${100 - hpPct}% - 3px)`;
+  if (hpChip) {
+    hpChip.classList.remove('hp-high', 'hp-mid', 'hp-crit');
+    if (hpPct > 60)      hpChip.classList.add('hp-high');
+    else if (hpPct > 30) hpChip.classList.add('hp-mid');
+    else                 hpChip.classList.add('hp-crit');
+  }
+  if (hpIcon) {
+    hpIcon.style.color      = hpPct > 60 ? '#3ae07a' : hpPct > 30 ? 'var(--accent)' : '#ff4444';
+    hpIcon.style.textShadow = hpPct > 60
+      ? '0 0 8px rgba(58,224,122,0.9)'
+      : hpPct > 30
+      ? '0 0 8px rgba(255,160,0,0.8)'
+      : '0 0 10px rgba(255,50,50,1)';
+  }
 
   if (badge) {
     badge.textContent = state;
