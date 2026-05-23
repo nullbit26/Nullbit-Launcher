@@ -796,6 +796,7 @@ function setBotRunning(running, force = false) {
       label.textContent = '▶ LAUNCH BOT';
     }
     stopUptime();
+    resetBotStatusWidget();
     if (tbWrap) tbWrap.className = 'titlebar-status offline';
     if (tbTxt)  tbTxt.textContent = 'OFFLINE';
   }
@@ -959,6 +960,9 @@ function tryParseScores(text) {
         case 'resource':
           updateResourceDiag(obj);
           break;
+        case 'status':
+          updateBotStatus(obj);
+          break;
         case 'inv':
           updateInventoryUI(obj);
           break;
@@ -995,6 +999,58 @@ function updateScores({ threatScore = 0, survivalScore = 0, resourceScore = 0 })
     chartHistory.resource.shift();
   }
   drawChart();
+}
+
+const STATE_CLASS_MAP = {
+  'IDLE':       'state-idle',
+  'GATHERING':  'state-gather',
+  'COMBAT':     'state-combat',
+  'FLEE':       'state-flee',
+  'FOLLOWING':  'state-follow',
+  'GUARDING':   'state-follow',
+};
+
+function updateBotStatus({ hp = 0, maxHp = 20, food = 0, state = 'IDLE' }) {
+  const hpBar   = document.getElementById('bsw-hp-bar');
+  const hpVal   = document.getElementById('bsw-hp-val');
+  const hpGlow  = document.getElementById('bsw-hp-glow');
+  const foodBar = document.getElementById('bsw-food-bar');
+  const foodVal = document.getElementById('bsw-food-val');
+  const badge   = document.getElementById('bsw-state-badge');
+  if (!hpBar) return;
+
+  const hpPct   = Math.min(100, Math.max(0, (hp / maxHp) * 100));
+  const foodPct = Math.min(100, Math.max(0, (food / 20) * 100));
+
+  hpBar.style.width   = hpPct + '%';
+  foodBar.style.width = foodPct + '%';
+  hpVal.textContent   = `${Math.round(hp)} / ${Math.round(maxHp)}`;
+  foodVal.textContent = Math.round(food);
+
+  hpBar.classList.remove('hp-high', 'hp-mid', 'hp-crit');
+  if (hpPct > 60)      hpBar.classList.add('hp-high');
+  else if (hpPct > 30) hpBar.classList.add('hp-mid');
+  else                 hpBar.classList.add('hp-crit');
+
+  if (hpGlow) hpGlow.style.right = `calc(${100 - hpPct}% - 3px)`;
+
+  if (badge) {
+    badge.textContent = state;
+    badge.className = 'bsw-state-badge ' + (STATE_CLASS_MAP[state] || 'state-idle');
+  }
+}
+
+function resetBotStatusWidget() {
+  const hpBar   = document.getElementById('bsw-hp-bar');
+  const hpVal   = document.getElementById('bsw-hp-val');
+  const foodBar = document.getElementById('bsw-food-bar');
+  const foodVal = document.getElementById('bsw-food-val');
+  const badge   = document.getElementById('bsw-state-badge');
+  if (hpBar)   { hpBar.style.width = '0%'; hpBar.className = 'bsw-hp-bar'; }
+  if (foodBar) foodBar.style.width = '0%';
+  if (hpVal)   hpVal.textContent   = '—';
+  if (foodVal) foodVal.textContent = '—';
+  if (badge)   { badge.textContent = 'OFFLINE'; badge.className = 'bsw-state-badge state-offline'; }
 }
 
 function drawChart() {
