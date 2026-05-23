@@ -1,4 +1,4 @@
-# NULLBIT LAUNCHER v3.0.3
+# NULLBIT LAUNCHER v3.0.6
 
 **Professional AI Bot Management Interface for Minecraft**
 
@@ -30,6 +30,8 @@
 ## Visual Features
 
 - **Cyberpunk UI**: Red theme with gold accents, glitch effects, scanlines
+  <img width="1204" height="799" alt="image" src="https://github.com/user-attachments/assets/267acc51-4ee5-4b30-8b5d-5d00da9c05c8" />
+
 - **Animated WELCOME**: Text scramble effect (hacking/decoding style)
 - **Red NULLBIT Logo**: Pulsing animation on first-time setup
 - **Download Progress**: Real-time speed (MB/s) and progress bar
