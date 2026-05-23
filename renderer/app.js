@@ -1070,19 +1070,19 @@ function _bootStatusBar() {
   const segEl   = document.getElementById('inv-segments');
   if (!bar) return;
 
-  // Set dots placeholders
+  // Set dots placeholders — inv segments stay as diamonds
   if (hpVal)   hpVal.textContent   = '···';
   if (foodVal) foodVal.textContent = '···';
-  if (segEl)   segEl.textContent   = '············';
+  if (segEl)   segEl.textContent   = '▱▱▱▱▱▱▱▱▱▱▱▱';
 
-  // Animate dots
+  // Animate dots only on hp/food — fixed 3 chars to avoid layout shift
   let dots = 0;
   _statusDotsTimer = setInterval(() => {
-    dots = (dots + 1) % 4;
-    const d = '·'.repeat(dots || 1);
+    dots = (dots + 1) % 3;
+    const d = '···'.slice(0, dots + 1).padEnd(3, ' ');
     if (hpVal)   hpVal.textContent   = d;
     if (foodVal) foodVal.textContent = d;
-  }, 280);
+  }, 350);
 
   // Trigger appear animation
   bar.classList.remove('bot-offline', 'bot-online', 'bot-shutdown');
