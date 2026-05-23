@@ -2816,9 +2816,8 @@ input:checked + .toggle-slider::before {
   opacity: 1;
 }
 @keyframes statusAppear {
-  0%   { opacity: 0; filter: brightness(0) blur(3px); }
-  30%  { opacity: 0.4; filter: brightness(0.5) blur(1px); }
-  60%  { opacity: 0.8; filter: brightness(2) blur(0px); letter-spacing: 4px; }
+  0%   { opacity: 0; filter: brightness(0) blur(4px); }
+  50%  { opacity: 0.5; filter: brightness(1.5) blur(1px); }
   100% { opacity: 1; filter: brightness(1) blur(0); }
 }
 .launch-status.bot-shutdown .lst-row,
@@ -2828,9 +2827,8 @@ input:checked + .toggle-slider::before {
 }
 @keyframes statusShutdown {
   0%   { opacity: 1; filter: brightness(1) blur(0); }
-  40%  { opacity: 0.8; filter: brightness(2) blur(0px); letter-spacing: 4px; }
-  70%  { opacity: 0.4; filter: brightness(0.5) blur(1px); }
-  100% { opacity: 0; filter: brightness(0) blur(3px); }
+  50%  { opacity: 0.5; filter: brightness(1.5) blur(1px); }
+  100% { opacity: 0; filter: brightness(0) blur(4px); }
 }
 @keyframes statusDotsAnim {
   0%   { content: '·'; }

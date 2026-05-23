@@ -1018,6 +1018,8 @@ function updateBotStatus({ hp = 0, maxHp = 20, food = 0, state = 'IDLE' }) {
   const foodVal = document.getElementById('bsw-food-val');
   const badge   = document.getElementById('bsw-state-badge');
   if (!hpVal) return;
+  // Stop dots animation when real data arrives
+  if (_statusDotsTimer) { clearInterval(_statusDotsTimer); _statusDotsTimer = null; }
 
   const hpPct = Math.min(100, Math.max(0, (hp / maxHp) * 100));
 
@@ -1086,15 +1088,12 @@ function _bootStatusBar() {
   bar.classList.remove('bot-offline', 'bot-online', 'bot-shutdown');
   bar.classList.add('bot-booting');
 
-  // After animation completes switch to online
+  // After appear animation completes (0.6s) switch to online state
+  // Dots keep animating until real telemetry arrives via updateBotStatus/updateInventoryUI
   _statusBootTimer = setTimeout(() => {
-    if (_statusDotsTimer) { clearInterval(_statusDotsTimer); _statusDotsTimer = null; }
     bar.classList.remove('bot-booting');
     bar.classList.add('bot-online');
-    if (hpVal)   hpVal.textContent   = '—';
-    if (foodVal) foodVal.textContent = '—';
-    if (segEl)   segEl.textContent   = '▱▱▱▱▱▱▱▱▱▱▱▱';
-  }, 700);
+  }, 650);
 }
 
 
