@@ -1,6 +1,6 @@
 {
   "name": "nullbit-launcher",
-  "version": "3.0.5",
+  "version": "3.0.6",
   "description": "NULLBIT GUI Launcher - Cyberpunk Edition",
   "main": "main.js",
   "scripts": {
@@ -22,12 +22,6 @@
           "arch": [
             "x64"
           ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
         }
       ],
       "icon": "assets/nullbit-icon.ico"
@@ -41,9 +35,6 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "NULLBIT Launcher"
-    },
-    "portable": {
-      "artifactName": "NULLBIT-Launcher-Portable.exe"
     },
     "files": [
       "main.js",

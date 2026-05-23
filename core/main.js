@@ -785,16 +785,3 @@ ipcMain.handle('download-bot', async (event) => {
   }
 });
 
-// Install update and restart
-ipcMain.handle('nsis-install-update', async () => {
-  try {
-    console.log('[AUTO-UPDATE] quitAndInstall called');
-    console.log('[AUTO-UPDATE] Current version before restart:', app.getVersion());
-    // true, true = silent install + restart
-    autoUpdater.quitAndInstall(true, true);
-    return { ok: true };
-  } catch (e) {
-    console.error('[AUTO-UPDATE] Install error:', e);
-    return { error: e.message };
-  }
-});
