@@ -1672,7 +1672,7 @@ function semverGt(a, b) {
 // ────────────────────────────────────────────
 //  Launcher Update Check
 // ────────────────────────────────────────────
-const LAUNCHER_VERSION = '3.0.13';
+const LAUNCHER_VERSION = '3.0.14';
 
 async function checkLauncherUpdate() {
   try {
