@@ -18,23 +18,31 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Extract release notes from CHANGELOG.md
-        id: changelog
-        shell: bash
-        run: |
-          VERSION=${GITHUB_REF_NAME#v}
-          NOTES=$(awk "/^## v$VERSION/{flag=1; next} /^## v/{flag=0} flag" CHANGELOG.md)
-          echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
-          echo "$NOTES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Install dependencies
         working-directory: core
         run: npm install
 
-      - name: Build & Publish
+      - name: Build
         working-directory: core
+        run: npm run build
+
+      - name: Create Release and upload assets
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          RELEASE_NOTES: ${{ steps.changelog.outputs.RELEASE_NOTES }}
-        run: npm run publish
+        run: |
+          TAG=${GITHUB_REF_NAME}
+          VERSION=${TAG#v}
+
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG" \
+            --notes "Release $TAG" \
+            --latest || true
+
+          gh release upload "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber \
+            "dist/NULLBIT Launcher Setup ${VERSION}.exe" \
+            "dist/NULLBIT Launcher Setup ${VERSION}.exe.blockmap" \
+            "dist/latest.yml"
