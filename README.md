@@ -30,7 +30,8 @@
 ## Visual Features
 
 - **Cyberpunk UI**: Red theme with gold accents, glitch effects, scanlines
-  <img width="1204" height="799" alt="image" src="https://github.com/user-attachments/assets/267acc51-4ee5-4b30-8b5d-5d00da9c05c8" />
+  
+<img width="1204" height="799" alt="image" src="https://github.com/user-attachments/assets/267acc51-4ee5-4b30-8b5d-5d00da9c05c8" />
 
 - **Animated WELCOME**: Text scramble effect (hacking/decoding style)
 - **Red NULLBIT Logo**: Pulsing animation on first-time setup
