@@ -15,14 +15,17 @@ autoUpdater.autoInstallOnAppQuit = true;
 
 const UPDATE_URL = 'https://api.github.com/repos/nullbit26/Nullbit-Client/releases/latest';
 
-// In portable/packed mode __dirname points inside the asar, so we use
-// the directory of the actual .exe for user files (config, bot exe)
 const IS_PACKED    = app.isPackaged;
-// PORTABLE_EXECUTABLE_DIR is set by electron-builder portable wrapper
-// and points to the actual folder where NULLBIT-Launcher.exe lives
+
+// USER_DATA_DIR — survives NSIS updates (AppData\Roaming\NULLBIT Launcher)
+// Install dir is wiped on update; user files must live outside it.
+const USER_DATA_DIR = app.getPath('userData'); // e.g. C:\Users\<user>\AppData\Roaming\NULLBIT Launcher
+
+// Legacy: dev mode uses project root for convenience
 const EXE_DIR      = IS_PACKED
-  ? (process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath))
+  ? USER_DATA_DIR
   : path.join(__dirname, '..');
+
 const RENDERER_DIR = IS_PACKED ? path.join(process.resourcesPath, 'app', 'renderer') : path.join(__dirname, '..', 'renderer');
 const CORE_DIR     = IS_PACKED ? path.join(process.resourcesPath, 'app')              : __dirname;
 const CONFIG_FILE  = path.join(EXE_DIR, 'config.json');
@@ -164,6 +167,22 @@ ipcMain.on('splash-done', () => {
 });
 
 app.whenReady().then(() => {
+  // Ensure userData dir exists (survives NSIS updates)
+  fs.ensureDirSync(USER_DATA_DIR);
+
+  // One-time migration: if config.json or AIBot.exe exist in old install dir, move them to userData
+  if (IS_PACKED) {
+    const oldDir = path.dirname(process.execPath);
+    const oldConfig = path.join(oldDir, 'config.json');
+    const oldBot    = path.join(oldDir, 'AIBot.exe');
+    if (fs.existsSync(oldConfig) && !fs.existsSync(CONFIG_FILE)) {
+      try { fs.moveSync(oldConfig, CONFIG_FILE); console.log('[MIGRATE] config.json → userData'); } catch(e) { console.warn('[MIGRATE] config move failed:', e.message); }
+    }
+    if (fs.existsSync(oldBot) && !fs.existsSync(BOT_EXE)) {
+      try { fs.moveSync(oldBot, BOT_EXE); console.log('[MIGRATE] AIBot.exe → userData'); } catch(e) { console.warn('[MIGRATE] AIBot move failed:', e.message); }
+    }
+  }
+
   // Debug logging for paths
   console.log('[STARTUP] ========== PATHS ==========');
   console.log('[STARTUP] isPackaged:', app.isPackaged);
