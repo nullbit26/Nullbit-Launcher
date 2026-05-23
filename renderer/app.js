@@ -1846,12 +1846,17 @@ function showBotUpdateInBanner(oldVer, newVer, url) {
 
 function dismissLauncherUpdate() {
   const banner = document.getElementById('launcher-update-banner');
-  if (banner) banner.style.display = 'none';
-  // Reset rows for next show
-  const launcherRow = document.getElementById('launcher-update-row');
-  const botRow = document.getElementById('bot-update-row');
-  if (launcherRow) launcherRow.style.display = 'flex';
-  if (botRow) botRow.style.display = 'none';
+  if (!banner) return;
+  banner.classList.add('banner-hiding');
+  setTimeout(() => {
+    banner.style.display = 'none';
+    banner.classList.remove('banner-hiding');
+    // Reset rows for next show
+    const launcherRow = document.getElementById('launcher-update-row');
+    const botRow = document.getElementById('bot-update-row');
+    if (launcherRow) launcherRow.style.display = 'flex';
+    if (botRow) botRow.style.display = 'none';
+  }, 360);
 }
 
 async function installBotUpdateInline() {
