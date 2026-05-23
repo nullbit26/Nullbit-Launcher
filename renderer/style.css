@@ -2788,11 +2788,11 @@ input:checked + .toggle-slider::before {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: nowrap;
 }
 .lst-state-row {
-  display: flex;
-  align-items: center;
-  margin-top: 1px;
+  display: block;
+  line-height: 1;
 }
 .lst-item {
   display: flex;
@@ -2857,7 +2857,7 @@ input:checked + .toggle-slider::before {
   color: rgba(255,255,255,0.18);
   background: transparent;
   transition: color 0.3s, border-color 0.3s, box-shadow 0.3s, background 0.3s;
-  margin-left: auto;
+  display: inline-block;
 }
 .lst-state.state-offline { color: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.06); }
 .lst-state.state-idle    { color: var(--accent); border-color: rgba(255,160,0,0.28); background: rgba(255,160,0,0.06); animation: lstBreath 3s ease-in-out infinite; }
