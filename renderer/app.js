@@ -927,6 +927,7 @@ async function toggleBot() {
       } else {
         okLog('BOT PROCESS STARTED');
         showToast('BOT ONLINE', 'ok', 3000);
+        resetSessionCounters();
         setBotRunning(true);
       }
     }
@@ -1157,7 +1158,15 @@ function updateDiagScores({ threatScore = 0, survivalScore = 0, resourceScore = 
   }
 }
 
+let _lastCombatMode = null;
 function updateCombatDiag({ mode, targetDist, weapon, lastAction, status }) {
+  if (mode && mode !== _lastCombatMode) {
+    if (mode === 'COMBAT')                      _session.combat++;
+    if (mode === 'FLEE' && _lastCombatMode !== 'FLEE') _session.fled++;
+    _updateSessionUI();
+  }
+  _lastCombatMode = mode;
+
   const set = (id, val) => {
     const el = document.getElementById('diag-combat-' + id);
     if (el) el.textContent = val || '—';
@@ -1195,7 +1204,33 @@ function updateWatchdogDiag({ lastCheck, lockHolder, pathStatus, status }) {
   }
 }
 
+const _session = { trees: 0, ores: 0, combat: 0, fled: 0, _prevTrees: 0, _prevOres: 0 };
+
+function resetSessionCounters() {
+  _session.trees = 0; _session.ores = 0;
+  _session.combat = 0; _session.fled = 0;
+  _session._prevTrees = 0; _session._prevOres = 0;
+  _updateSessionUI();
+}
+
+function _updateSessionUI() {
+  const s = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  s('sess-trees', _session.trees);
+  s('sess-ores',  _session.ores);
+  s('sess-combat', _session.combat);
+  s('sess-fled',  _session.fled);
+}
+
 function updateResourceDiag({ trees, ores, fallbacks, dangerStops, status, summary }) {
+  // accumulate session deltas
+  const dt = (trees  || 0) - _session._prevTrees;
+  const do_ = (ores  || 0) - _session._prevOres;
+  if (dt > 0) { _session.trees += dt; }
+  if (do_ > 0) { _session.ores += do_; }
+  _session._prevTrees = trees || 0;
+  _session._prevOres  = ores  || 0;
+  _updateSessionUI();
+
   const set = (id, val) => {
     const el = document.getElementById('diag-' + id);
     if (el) el.textContent = val !== undefined ? val : '0';
