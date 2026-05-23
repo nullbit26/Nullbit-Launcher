@@ -1,4 +1,4 @@
-/**
+﻿/**
  * NULLBIT Launcher — Renderer logic
  */
 
@@ -1070,9 +1070,9 @@ function _bootStatusBar() {
   const segEl   = document.getElementById('inv-segments');
   if (!bar) return;
 
-  // Set dots placeholders — inv segments stay as diamonds
-  if (hpVal)   hpVal.textContent   = '···';
-  if (foodVal) foodVal.textContent = '···';
+  // Fields empty until dots start, inv stays as diamonds — inv segments stay as diamonds
+  if (hpVal)   hpVal.textContent   = '';
+  if (foodVal) foodVal.textContent = '';
   if (segEl)   segEl.textContent   = '▱▱▱▱▱▱▱▱▱▱▱▱';
 
   // Trigger appear animation
