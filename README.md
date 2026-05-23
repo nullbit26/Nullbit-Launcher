@@ -76,7 +76,7 @@ https://platform.openai.com/assistants
 
 ### First-Time Bot Installation
 When you first launch NULLBIT without AIBot.exe:
-- **Cyberpunk WELCOME screen** appears with hacking-style animations
+- **WELCOME screen** appears with hacking-style animations
 - **AUTO INSTALL BOT** - Downloads and installs latest bot automatically
 - **MANUAL INSTALL** - Opens launcher folder for manual file placement
 - Download shows real-time speed (MB/s) and progress
@@ -134,16 +134,32 @@ When you first launch NULLBIT without AIBot.exe:
 
 For issues and feature requests:
 - GitHub Issues: `nullbit26/Nullbit-Client`
-- Discord: [invite link]
 
 ---
 
 ## Version History
 
-- **v3.0.3** (2024-05-22) - Cyberpunk Edition: Auto bot download, hacking effects, improved UI
-- **v3.0.0** (2024-05-20) - Initial release with basic launcher functionality
+## v3.0.6
+- Fixed duplicate `nsis-install-update` IPC handler crash on startup
+- Removed portable build target (NSIS only)
+- Switched launcher auto-update to native NSIS `electron-updater` flow
+- Added bot update row in launcher update banner with GitHub link
+- Fixed bot version badge showing "vinstalled" instead of actual version
+- Fixed hardcoded `LAUNCHER_VERSION` constant
+
+## v3.0.5
+- Added full-screen restart modal after bot download
+- Added `RESTART LAUNCHER` button with auto-relaunch via IPC
+- Added bot update notification row in launcher update banner
+- Fixed NaN/NaN MB display during downloads
+- Fixed telemetry OFFLINE status (added heartbeat in ResourceSystem and GlobalWatchdog)
+- Updated launcher version badge to v3.0.5
+
+## v3.0.3
+- Initial public release
+
 
 ---
 
-**© 2026 NULLBIT Systems**
-**Current Version: v3.0.3**
+**© 2026 NULLBIT**
+**Current Version: v3.0.6**
