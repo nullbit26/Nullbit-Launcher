@@ -1043,10 +1043,12 @@ function updateBotStatus({ hp = 0, maxHp = 20, food = 0, state = 'IDLE' }) {
 function resetBotStatusWidget() {
   const hpBar   = document.getElementById('bsw-hp-bar');
   const hpVal   = document.getElementById('bsw-hp-val');
+  const hpGlow  = document.getElementById('bsw-hp-glow');
   const foodBar = document.getElementById('bsw-food-bar');
   const foodVal = document.getElementById('bsw-food-val');
   const badge   = document.getElementById('bsw-state-badge');
   if (hpBar)   { hpBar.style.width = '0%'; hpBar.className = 'bsw-hp-bar'; }
+  if (hpGlow)  hpGlow.style.right = 'calc(100% - 3px)';
   if (foodBar) foodBar.style.width = '0%';
   if (hpVal)   hpVal.textContent   = '—';
   if (foodVal) foodVal.textContent = '—';
