@@ -2776,10 +2776,10 @@ input:checked + .toggle-slider::before {
   align-items: center;
   gap: 0;
   margin: 10px 0 12px;
-  border-left: 2px solid rgba(255,160,0,0.35);
-  border-bottom: 1px solid rgba(255,160,0,0.08);
-  background: transparent;
-  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-left: 2px solid rgba(255,160,0,0.5);
+  background: var(--bg2);
+  padding: 7px 14px;
   position: relative;
 }
 .bsb-inv {
