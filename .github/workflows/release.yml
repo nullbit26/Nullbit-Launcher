@@ -43,6 +43,6 @@ jobs:
           gh release upload "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --clobber \
-            "dist/NULLBIT Launcher Setup ${VERSION}.exe" \
-            "dist/NULLBIT Launcher Setup ${VERSION}.exe.blockmap" \
+            "dist/NullbitLauncher-Setup-${VERSION}.exe" \
+            "dist/NullbitLauncher-Setup-${VERSION}.exe.blockmap" \
             "dist/latest.yml"

@@ -1,6 +1,6 @@
 {
   "name": "nullbit-launcher",
-  "version": "3.0.16",
+  "version": "3.0.17",
   "description": "NULLBIT GUI Launcher - Cyberpunk Edition",
   "main": "main.js",
   "scripts": {
@@ -24,7 +24,8 @@
           ]
         }
       ],
-      "icon": "assets/nullbit-icon.ico"
+      "icon": "assets/nullbit-icon.ico",
+      "artifactName": "NullbitLauncher-Setup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
