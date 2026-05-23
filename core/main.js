@@ -468,63 +468,6 @@ ipcMain.handle('launcher-update-download', async () => {
   return { error: 'PORTABLE_UPDATER_REMOVED' };
 });
 
-// Helper to download with redirect following (used for bot update only)
-function downloadFile(url, destPath, onProgress, maxRedirects = 5) {
-  return new Promise((resolve, reject) => {
-    if (maxRedirects <= 0) {
-      reject(new Error('Too many redirects'));
-      return;
-    }
-
-    const protocol = url.startsWith('https:') ? https : require('http');
-    const file = fs.createWriteStream(destPath);
-
-    protocol.get(url, { headers: { 'User-Agent': 'Nullbit-Launcher-GUI' } }, (res) => {
-      // Handle redirects (301, 302, 307, 308)
-      if ([301, 302, 307, 308].includes(res.statusCode)) {
-        const redirectUrl = res.headers.location;
-        if (!redirectUrl) {
-          reject(new Error('Redirect without Location header'));
-          return;
-        }
-        // Resolve relative URLs
-        const resolvedUrl = new URL(redirectUrl, url).toString();
-        file.close();
-        fs.unlink(destPath, () => {});
-        downloadFile(resolvedUrl, destPath, onProgress, maxRedirects - 1)
-          .then(resolve)
-          .catch(reject);
-        return;
-      }
-
-      if (res.statusCode !== 200) {
-        reject(new Error(`HTTP ${res.statusCode}`));
-        return;
-      }
-
-      const totalSize = parseInt(res.headers['content-length'] || '0');
-      let downloaded = 0;
-
-      res.on('data', (chunk) => {
-        downloaded += chunk.length;
-        if (totalSize > 0 && onProgress) {
-          // Cap at 100% to handle any size mismatches
-          const percent = Math.min(100, Math.round((downloaded / totalSize) * 100));
-          onProgress(percent);
-        }
-      });
-
-      res.pipe(file);
-      file.on('finish', () => {
-        file.close();
-        resolve(destPath);
-      });
-    }).on('error', (e) => {
-      fs.unlink(destPath, () => {});
-      reject(e);
-    });
-  });
-}
 
 
 // REMOVED: launcher-update-install (portable)
