@@ -2,14 +2,6 @@
 
 **Professional AI Bot Management Interface for Minecraft**
 
-🎮 **What's New in v3.0.3:**
-- Cyberpunk 2077 style UI with glitch effects
-- Auto bot download from GitHub/Dropbox
-- First-time setup wizard
-- Improved update system
-
----
-
 ## Quick Start
 
 ### First Launch (New Users)
