@@ -930,7 +930,7 @@ async function toggleBot() {
         showToast('BOT ONLINE', 'ok', 3000);
         resetSessionCounters();
         setBotRunning(true);
-        _bootStatusBar();
+        setTimeout(() => _bootStatusBar(), 2000);
       }
     }
   } finally {
