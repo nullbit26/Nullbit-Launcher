@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NULLBIT</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #1c1c1e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-family: 'Consolas', 'Courier New', monospace;
+    }
+
+    .splash-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      opacity: 0;
+      animation: fadeIn 0.3s ease forwards;
+    }
+
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    /* ── LOGO ── */
+    .logo-container {
+      position: relative;
+      width: 220px;
+      height: 220px;
+    }
+
+    .logo-img {
+      width: 220px;
+      height: 220px;
+      object-fit: contain;
+      position: relative;
+      z-index: 2;
+      filter: drop-shadow(0 0 18px rgba(224, 58, 58, 0.6))
+              drop-shadow(0 0 40px rgba(245, 197, 24, 0.25));
+      animation: logoIn 0.4s ease forwards, glowPulse 2s ease-in-out infinite 0.5s;
+    }
+
+    @keyframes logoIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+
+    @keyframes glowPulse {
+      0%, 100% {
+        filter: drop-shadow(0 0 18px rgba(224, 58, 58, 0.6))
+                drop-shadow(0 0 40px rgba(245, 197, 24, 0.25));
+      }
+      50% {
+        filter: drop-shadow(0 0 28px rgba(224, 58, 58, 0.9))
+                drop-shadow(0 0 60px rgba(245, 197, 24, 0.5));
+      }
+    }
+
+    /* ── SCANLINES overlay ── */
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 3px,
+        rgba(0,0,0,0.18) 3px,
+        rgba(0,0,0,0.18) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Glitch layers */
+    .glitch-layer {
+      position: absolute;
+      top: 0; left: 0;
+      width: 220px;
+      height: 220px;
+      object-fit: contain;
+      opacity: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+    .glitch-r {
+      filter: hue-rotate(0deg) saturate(3) drop-shadow(0 0 6px #e03a3a);
+      mix-blend-mode: screen;
+      animation: glitchR 0.9s infinite 0.3s;
+    }
+    .glitch-y {
+      filter: hue-rotate(180deg) saturate(3) drop-shadow(0 0 6px #f5c518);
+      mix-blend-mode: screen;
+      animation: glitchY 1.1s infinite 0.15s;
+    }
+    .glitch-b {
+      filter: invert(1) hue-rotate(90deg) saturate(2);
+      mix-blend-mode: screen;
+      animation: glitchB 1.4s infinite 0.5s;
+    }
+
+    @keyframes glitchR {
+      0%,60%,100% { opacity:0; transform:translate(0,0); clip-path:none; }
+      62% { opacity:0.55; transform:translate(-5px,0); clip-path:inset(15% 0 55% 0); }
+      64% { opacity:0;    transform:translate(0,0); }
+      70% { opacity:0.45; transform:translate(4px,2px); clip-path:inset(55% 0 10% 0); }
+      72% { opacity:0; }
+      78% { opacity:0.35; transform:translate(-3px,-1px); clip-path:inset(35% 0 35% 0); }
+      80% { opacity:0; }
+    }
+
+    @keyframes glitchY {
+      0%,50%,100% { opacity:0; transform:translate(0,0); clip-path:none; }
+      52% { opacity:0.5;  transform:translate(5px,-1px); clip-path:inset(5%  0 70% 0); }
+      54% { opacity:0;    transform:translate(0,0); }
+      60% { opacity:0.4;  transform:translate(-4px,2px); clip-path:inset(65% 0 5%  0); }
+      62% { opacity:0; }
+      68% { opacity:0.3;  transform:translate(3px,0); clip-path:inset(40% 0 30% 0); }
+      70% { opacity:0; }
+    }
+
+    @keyframes glitchB {
+      0%,75%,100% { opacity:0; transform:translate(0,0) skewX(0deg); }
+      77% { opacity:0.2; transform:translate(2px,0) skewX(-3deg); clip-path:inset(30% 0 40% 0); }
+      79% { opacity:0; transform:skewX(0deg); }
+      84% { opacity:0.15; transform:translate(-2px,1px) skewX(2deg); clip-path:inset(70% 0 5% 0); }
+      86% { opacity:0; }
+    }
+
+    /* ── Logo shake on glitch bursts ── */
+    .logo-img {
+      animation: logoIn 0.4s ease forwards, glowPulse 2s ease-in-out infinite 0.5s, logoShake 0.9s infinite 0.3s !important;
+    }
+    @keyframes logoShake {
+      0%,58%,100% { transform: translate(0,0); }
+      62% { transform: translate(-2px, 1px); }
+      64% { transform: translate(2px, -1px); }
+      66% { transform: translate(-1px, 0); }
+      68% { transform: translate(0,0); }
+    }
+
+    /* ── TEXT ── */
+    .brand-text {
+      text-align: center;
+      animation: textIn 0.5s ease 0.3s both;
+    }
+
+    @keyframes textIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .brand-name {
+      font-size: 28px;
+      font-weight: bold;
+      letter-spacing: 10px;
+      color: #f5c518;
+      text-shadow: 0 0 20px rgba(245,197,24,0.5);
+      position: relative;
+      animation: textIn 0.5s ease 0.3s both, textGlitch 1.1s infinite 0.8s;
+    }
+    @keyframes textGlitch {
+      0%,55%,100% { text-shadow: 0 0 20px rgba(245,197,24,0.5); transform:translate(0,0); }
+      57% { text-shadow: -3px 0 #e03a3a, 3px 0 #4a9eff; transform:translate(-2px,0); }
+      59% { text-shadow: 0 0 20px rgba(245,197,24,0.5); transform:translate(0,0); }
+      65% { text-shadow: 2px 0 #e03a3a, -2px 0 #f5c518; transform:translate(1px,0); }
+      67% { text-shadow: 0 0 20px rgba(245,197,24,0.5); transform:translate(0,0); }
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: #5a5a5a;
+      margin-top: 4px;
+    }
+
+    /* ── LOADING BAR ── */
+    .loading-wrap {
+      width: 200px;
+      animation: textIn 0.5s ease 0.6s both;
+    }
+
+    .loading-track {
+      height: 2px;
+      background: #2c2c2f;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .loading-fill {
+      height: 100%;
+      background: #f5c518;
+      box-shadow: 0 0 8px rgba(245,197,24,0.6);
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    .loading-text {
+      font-size: 10px;
+      color: #4a4a4a;
+      letter-spacing: 2px;
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    /* ── VIGNETTE ── */
+    .splash-vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background: radial-gradient(
+        ellipse 60% 55% at 50% 50%,
+        transparent 0%,
+        transparent 40%,
+        rgba(10, 10, 12, 0.55) 70%,
+        rgba(10, 10, 12, 0.92) 100%
+      );
+    }
+    .splash-vignette-blur {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      mask-image: radial-gradient(
+        ellipse 55% 50% at 50% 50%,
+        transparent 0%,
+        transparent 35%,
+        black 75%
+      );
+      -webkit-mask-image: radial-gradient(
+        ellipse 55% 50% at 50% 50%,
+        transparent 0%,
+        transparent 35%,
+        black 75%
+      );
+    }
+
+    /* ── BG TICKERS ── */
+    .splash-tickers {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .splash-ticker-col {
+      position: absolute;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 11px;
+      line-height: 1.4;
+      letter-spacing: 1px;
+    }
+    .splash-ticker-col span { display: block; text-align: center; }
+
+    /* ── FADE OUT ── */
+    .fade-out {
+      animation: fadeOut 0.6s ease forwards !important;
+    }
+    @keyframes fadeOut {
+      0%   { opacity: 1; transform: scale(1); filter: none; }
+      40%  { opacity: 0.8; transform: scale(1.02); filter: blur(0px); }
+      100% { opacity: 0; transform: scale(1.06); filter: blur(6px); }
+    }
+
+    /* Glitch exit on logo */
+    .glitch-exit {
+      animation: glitchExit 0.55s steps(1) forwards !important;
+    }
+    @keyframes glitchExit {
+      0%   { transform: translate(0,0);      filter: none;                                            opacity:1; }
+      10%  { transform: translate(-4px,0);   filter: hue-rotate(0deg);                               opacity:1; }
+      15%  { transform: translate(4px,-2px); filter: saturate(4) hue-rotate(180deg) blur(1px);        opacity:1; }
+      20%  { transform: translate(-2px,2px); filter: none;                                            opacity:1; }
+      30%  { transform: translate(5px,0);    filter: saturate(6) hue-rotate(90deg);                   opacity:0.9; }
+      35%  { transform: translate(-3px,1px); filter: blur(2px) saturate(3);                           opacity:0.9; }
+      45%  { transform: translate(3px,-3px); filter: saturate(5) hue-rotate(270deg) brightness(1.5);  opacity:0.7; }
+      55%  { transform: translate(-5px,2px); filter: blur(3px) brightness(0.6);                       opacity:0.5; }
+      65%  { transform: translate(2px,-1px); filter: saturate(8) hue-rotate(45deg) blur(4px);         opacity:0.3; }
+      80%  { transform: translate(-2px,0);   filter: blur(6px) brightness(0.3);                       opacity:0.15; }
+      100% { transform: translate(0,0);      filter: blur(8px);                                       opacity:0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="splash-tickers" id="splash-tickers"></div>
+  <div class="splash-vignette-blur"></div>
+  <div class="splash-vignette"></div>
+  <div class="splash-wrap" id="splash" style="position:relative;z-index:2;">
+
+    <div class="logo-container">
+      <img class="logo-img"    src="./splash-logo.png" alt="NULLBIT" id="logo-main" />
+      <img class="glitch-layer glitch-r" src="./splash-logo.png" alt="" />
+      <img class="glitch-layer glitch-y" src="./splash-logo.png" alt="" />
+      <img class="glitch-layer glitch-b" src="./splash-logo.png" alt="" />
+    </div>
+
+    <div class="brand-text">
+      <div class="brand-name" id="brand-name">NULLBIT</div>
+    </div>
+
+    <div class="loading-wrap">
+      <div class="loading-track">
+        <div class="loading-fill" id="loading-fill"></div>
+      </div>
+      <div class="loading-text" id="loading-text">INITIALIZING...</div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── BG TICKERS — vertical columns ──
+    const HEX = '0123456789ABCDEF01';
+    const COLORS = [
+      'rgba(192,57,43,0.30)', 'rgba(192,57,43,0.20)', 'rgba(192,57,43,0.24)',
+      'rgba(220,50,50,0.26)', 'rgba(180,40,40,0.16)', 'rgba(200,55,55,0.22)',
+    ];
+
+    function buildSplashTickers() {
+      const wrap = document.getElementById('splash-tickers');
+      if (!wrap) return;
+      const winW = window.innerWidth;
+      const winH = window.innerHeight;
+      const colW = 18;
+      const rowH = 15;
+      const rowCount = Math.ceil(winH / rowH);
+      const colCount = Math.ceil(winW / colW);
+
+      for (let c = 0; c < colCount; c++) {
+        const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+        const goDown = Math.random() > 0.5;
+        const speed = 35 + Math.floor(Math.random() * 40);
+
+        const col = document.createElement('div');
+        col.className = 'splash-ticker-col';
+        col.style.cssText = `left:${c * colW}px; color:${color}; width:${colW}px;`;
+
+        const chars = Array.from({length: rowCount},
+          () => HEX[Math.floor(Math.random() * HEX.length)]);
+
+        const spans = chars.map(ch => {
+          const s = document.createElement('span');
+          s.textContent = ch;
+          col.appendChild(s);
+          return s;
+        });
+        wrap.appendChild(col);
+
+        setInterval(() => {
+          if (goDown) {
+            chars.unshift(HEX[Math.floor(Math.random() * HEX.length)]);
+            chars.pop();
+          } else {
+            chars.push(HEX[Math.floor(Math.random() * HEX.length)]);
+            chars.shift();
+          }
+          for (let i = 0; i < 2; i++) {
+            const idx = Math.floor(Math.random() * chars.length);
+            chars[idx] = HEX[Math.floor(Math.random() * HEX.length)];
+          }
+          spans.forEach((s, i) => s.textContent = chars[i]);
+        }, speed);
+      }
+    }
+    buildSplashTickers();
+
+    // ── LOADING ──
+    const fill   = document.getElementById('loading-fill');
+    const label  = document.getElementById('loading-text');
+    const splash = document.getElementById('splash');
+
+    const steps = [
+      { pct: 15,  text: 'LOADING MODULES...' },
+      { pct: 35,  text: 'CHECKING LICENSE...' },
+      { pct: 60,  text: 'CONNECTING...' },
+      { pct: 80,  text: 'LOADING CONFIG...' },
+      { pct: 100, text: 'READY' },
+    ];
+
+    let i = 0;
+    const TOTAL_MS = 2000;
+    const interval = TOTAL_MS / steps.length;
+
+    function nextStep() {
+      if (i >= steps.length) return;
+      fill.style.width  = steps[i].pct + '%';
+      label.textContent = steps[i].text;
+      i++;
+      if (i < steps.length) {
+        setTimeout(nextStep, interval);
+      } else {
+        // Done — simple fade out
+        setTimeout(() => {
+          spawnDissolve();
+          setTimeout(() => {
+            splash.classList.add('fade-out');
+            setTimeout(() => {
+              if (window.splashAPI) window.splashAPI.done();
+            }, 600);
+          }, 180);
+        }, 300);
+      }
+    }
+
+    function spawnDissolve() {
+      const logo  = document.getElementById('logo-main');
+      const brand = document.getElementById('brand-name');
+      const CHARS = '0123456789ABCDEF#@!';
+
+      // Glitch exit on logo
+      if (logo) logo.classList.add('glitch-exit');
+
+      // Rapid glitch on brand text
+      if (brand) {
+        const orig = brand.textContent;
+        let t = 0;
+        const iv = setInterval(() => {
+          brand.textContent = orig.split('').map(c =>
+            Math.random() > 0.45 ? CHARS[Math.floor(Math.random() * 16)] : c
+          ).join('');
+          if (++t > 12) { clearInterval(iv); }
+        }, 35);
+      }
+    }
+
+    setTimeout(nextStep, 400);
+  </script>
+</body>
+</html>

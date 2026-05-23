@@ -1,0 +1,84 @@
+{
+  "name": "nullbit-launcher",
+  "version": "3.0.5",
+  "description": "NULLBIT GUI Launcher - Cyberpunk Edition",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder --win --x64",
+    "publish": "electron-builder --win --x64 --publish always"
+  },
+  "build": {
+    "appId": "com.nullbit.launcher",
+    "productName": "NULLBIT Launcher",
+    "directories": {
+      "output": "../dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/nullbit-icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/nullbit-icon.ico",
+      "uninstallerIcon": "assets/nullbit-icon.ico",
+      "installerHeaderIcon": "assets/nullbit-icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "NULLBIT Launcher"
+    },
+    "portable": {
+      "artifactName": "NULLBIT-Launcher-Portable.exe"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "preload-splash.js",
+      "updater.js",
+      "assets/**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/.bin"
+    ],
+    "extraResources": [
+      {
+        "from": "../renderer",
+        "to": "app/renderer"
+      }
+    ],
+    "asar": false,
+    "compression": "maximum",
+    "publish": {
+      "provider": "github",
+      "owner": "nullbit26",
+      "repo": "Nullbit-Launcher",
+      "releaseType": "release"
+    }
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "electron-updater": "^6.8.3",
+    "fs-extra": "^11.2.0"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.0.0",
+    "png-to-ico": "^3.0.1",
+    "to-ico": "^1.1.5"
+  }
+}

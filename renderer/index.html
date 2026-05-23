@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NULLBIT LAUNCHER</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="vignette"></div>
+<div id="toast-container"></div>
+<div class="scanlines"></div>
+<div class="glitch-flash" id="glitch-flash">
+  <div class="g-crack"><span id="g-crack-text"></span></div>
+  <div class="g-rain" id="g-rain"></div>
+</div>
+
+<!-- ── TITLE BAR ── -->
+<div class="titlebar">
+  <div class="titlebar-logo">
+    <span class="logo-bracket">[</span>
+    <span class="logo-text">NULLBIT</span>
+    <span class="logo-bracket">]</span>
+  </div>
+  <div class="titlebar-status" id="titlebar-status">
+    <span class="tb-status-dot" id="tb-status-dot"></span>
+    <span class="tb-status-text" id="tb-status-text">OFFLINE</span>
+  </div>
+  <div class="titlebar-controls">
+    <button class="tb-btn tb-min" onclick="launcher.minimize()" title="Minimize">─</button>
+    <button class="tb-btn tb-close" onclick="launcher.close()" title="Close">✕</button>
+  </div>
+</div>
+
+<!-- ── LAUNCHER UPDATE BANNER ── -->
+<div class="update-banner" id="launcher-update-banner" style="display:none">
+  <!-- Normal State -->
+  <div class="update-banner-content" id="update-normal-content">
+    <div class="update-banner-row">
+      <span class="update-banner-icon">◉</span>
+      <span class="update-banner-text">LAUNCHER UPDATE</span>
+      <span class="update-banner-version" id="launcher-new-version"></span>
+      <button class="update-banner-btn install" id="launcher-install-btn" onclick="installLauncherUpdate()">INSTALL</button>
+      <a class="update-banner-link" id="launcher-update-link" href="#" target="_blank">VIEW ON GITHUB ↗</a>
+      <button class="update-banner-close" onclick="dismissLauncherUpdate()">✕</button>
+    </div>
+    <!-- Bot update row (shown only when bot update also available) -->
+    <div class="update-banner-row update-banner-bot-row" id="bot-update-row" style="display:none">
+      <span class="update-banner-icon">◈</span>
+      <span class="update-banner-text">BOT UPDATE</span>
+      <span class="update-banner-version" id="bot-new-version"></span>
+      <button class="update-banner-btn" onclick="switchTab(document.querySelector('[data-tab=update]')); dismissLauncherUpdate();">DOWNLOAD</button>
+    </div>
+  </div>
+  <!-- Cyberpunk Download State -->
+  <div class="update-download-state" id="update-download-state" style="display:none">
+    <div class="cyber-loading-text" id="cyber-loading-text">INITIALIZING UPLOAD</div>
+    <div class="cyber-progress-wrap">
+      <div class="cyber-progress-bar" id="cyber-progress-bar" style="width:0%"></div>
+      <div class="cyber-progress-glow"></div>
+    </div>
+    <div class="cyber-progress-details">
+      <span id="cyber-progress-percent">0%</span>
+      <span class="cyber-glitch-numbers" id="cyber-glitch-numbers">00.00 MB / 00.00 MB</span>
+    </div>
+  </div>
+</div>
+
+<!-- Cyberpunk Missing Bot Modal (Friendly version) -->
+<div class="cyber-modal" id="missing-bot-modal" style="display:none">
+  <div class="cyber-modal-overlay cyber-welcome">
+    <div class="cyber-modal-content">
+      <div class="cyber-glitch-bg"></div>
+      <div class="cyber-scanlines"></div>
+      <div class="cyber-modal-header">
+        <img src="splash-logo.png" class="cyber-welcome-logo" alt="NULLBIT" />
+        <div class="cyber-glitch-text cyber-welcome-text cyber-mega-glitch" data-text="WELCOME">WELCOME</div>
+      </div>
+      <div class="cyber-modal-body">
+        <div class="cyber-error-code cyber-welcome-code">FIRST TIME SETUP</div>
+        <div class="cyber-error-message cyber-welcome-msg">
+          <span class="cyber-flicker cyber-welcome-highlight">AIBOT.EXE</span> NOT FOUND
+        </div>
+        <div class="cyber-error-sub cyber-welcome-sub">
+          NULLBIT Launcher is ready.<br>
+          Please install the AI bot to begin.<br>
+          <span style="color: var(--text-dim); font-size: 11px; margin-top: 8px; display: block;">
+            (You only need to do this once)
+          </span>
+        </div>
+      </div>
+      <!-- Bot Download Progress (hidden by default) -->
+      <div class="bot-download-progress" id="bot-download-progress" style="display:none">
+        <div class="bot-dl-header">
+          <span class="bot-dl-status" id="bot-dl-status">CONNECTING...</span>
+          <span class="bot-dl-percent" id="bot-dl-percent">0%</span>
+        </div>
+        <div class="bot-dl-bar-wrap">
+          <div class="bot-dl-bar" id="bot-dl-bar" style="width:0%"></div>
+          <div class="bot-dl-glow"></div>
+          <div class="bot-dl-particles" id="bot-dl-particles"></div>
+        </div>
+        <div class="bot-dl-details">
+          <span class="bot-dl-speed" id="bot-dl-speed">0.00 MB/s</span>
+          <span class="bot-dl-size" id="bot-dl-size">0.00 / 0.00 MB</span>
+        </div>
+        <div class="bot-dl-glitch-text" id="bot-dl-glitch-text">INITIALIZING NEURAL LINK</div>
+      </div>
+
+      <div class="cyber-modal-actions" id="bot-modal-actions">
+        <button class="cyber-btn primary" id="bot-dl-btn" onclick="downloadBot()">
+          <span class="cyber-btn-text">AUTO INSTALL BOT</span>
+          <span class="cyber-btn-glitch"></span>
+        </button>
+        <button class="cyber-btn secondary" onclick="dismissMissingBot()">
+          <span class="cyber-btn-text">MANUAL INSTALL</span>
+        </button>
+      </div>
+      <div class="cyber-modal-footer cyber-welcome-footer">
+        <span class="cyber-blink">_</span> Waiting for bot installation
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── BOT UPDATED / RESTART MODAL ── -->
+<div class="cyber-modal" id="restart-modal" style="display:none">
+  <div class="cyber-modal-overlay restart-overlay">
+    <div class="cyber-modal-content restart-content">
+      <div class="cyber-glitch-bg"></div>
+      <div class="cyber-scanlines"></div>
+      <div class="restart-corner tl"></div>
+      <div class="restart-corner tr"></div>
+      <div class="restart-corner bl"></div>
+      <div class="restart-corner br"></div>
+      <div class="restart-header">
+        <div class="restart-icon">↺</div>
+        <div class="restart-title cyber-glitch-text cyber-mega-glitch" id="restart-title-text" data-text="BOT UPDATED">BOT UPDATED</div>
+      </div>
+      <div class="restart-version-row">
+        <span class="restart-ver-old" id="restart-ver-old">v—</span>
+        <span class="restart-ver-arrow">→</span>
+        <span class="restart-ver-new" id="restart-ver-new">v—</span>
+      </div>
+      <div class="restart-message">
+        NEW <span class="restart-highlight">AIBOT.EXE</span> INSTALLED.<br>
+        RESTART REQUIRED TO APPLY CHANGES.
+      </div>
+      <div class="restart-actions">
+        <button class="cyber-btn primary restart-btn" onclick="doRelaunch()">
+          <span class="cyber-btn-text">[ RESTART LAUNCHER ]</span>
+          <span class="cyber-btn-glitch"></span>
+        </button>
+      </div>
+      <div class="restart-footer">
+        <span class="cyber-blink">_</span> SYSTEM READY — AWAITING REBOOT
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN LAYOUT ── -->
+<div class="layout">
+
+  <!-- LEFT SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-item active" data-tab="dashboard" onclick="switchTab(this)">
+      <span class="nav-icon">◈</span><span>DASHBOARD</span>
+    </div>
+    <div class="nav-item" data-tab="config" onclick="switchTab(this)">
+      <span class="nav-icon">◇</span><span>CORE ACCESS</span>
+    </div>
+    <div class="nav-item" data-tab="system" onclick="switchTab(this)">
+      <span class="nav-icon">⚙</span><span>SYSTEM</span>
+    </div>
+    <div class="nav-item" data-tab="diagnostics" onclick="switchTab(this)">
+      <span class="nav-icon">◧</span><span>DIAGNOSTICS</span>
+    </div>
+    <div class="nav-item" data-tab="squad" onclick="switchTab(this)">
+      <span class="nav-icon">◉</span><span>SQUAD</span>
+    </div>
+    <div class="nav-item" data-tab="update" onclick="switchTab(this)">
+      <span class="nav-icon">↑</span><span>UPDATE</span>
+    </div>
+    <div class="sidebar-logo-wrap">
+      <img src="splash-logo.png" class="sidebar-logo" alt="NULLBIT" />
+    </div>
+    <div class="sidebar-bottom">
+      <div class="uptime-wrap">
+        <span class="uptime-label">UPTIME</span>
+        <span class="uptime-val" id="status-uptime">00:00:00</span>
+      </div>
+      <div class="license-status" id="license-status">● UNLICENSED</div>
+      <div class="version-wrap">
+        <span class="version-item">BOT <span id="version-badge">v—</span></span>
+        <span class="version-item">LAUNCHER <span id="launcher-version">v3.0.5</span></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <!-- ─── TAB: DASHBOARD ─── -->
+    <section class="tab active" id="tab-dashboard">
+      <div class="dashboard-watermark" aria-hidden="true">NULLBIT</div>
+      <div class="section-header">
+        <span class="header-tag">[ SYS ]</span> SYSTEM CONTROL
+      </div>
+
+      <!-- LAUNCH ROW -->
+      <div class="launch-row">
+        <button class="btn-launch" id="btn-launch" onclick="toggleBot()">
+          <span id="btn-launch-text">▶ LAUNCH BOT</span>
+        </button>
+      </div>
+
+      <!-- TACTICAL SCORES -->
+      <div class="section-header" style="margin-top:20px">
+        <span class="header-tag">[ TAC ]</span> ANALYTICS
+      </div>
+      <div class="scores-grid">
+        <div class="score-card">
+          <div class="score-label">THREAT SCORE</div>
+          <div class="score-bar-wrap">
+            <div class="score-bar threat" id="bar-threat" style="width:0%"></div>
+          </div>
+          <div class="score-val" id="val-threat">0.00</div>
+        </div>
+        <div class="score-card">
+          <div class="score-label">SURVIVAL SCORE</div>
+          <div class="score-bar-wrap">
+            <div class="score-bar survival" id="bar-survival" style="width:0%"></div>
+          </div>
+          <div class="score-val" id="val-survival">0.00</div>
+        </div>
+        <div class="score-card">
+          <div class="score-label">RESOURCE SCORE</div>
+          <div class="score-bar-wrap">
+            <div class="score-bar resource" id="bar-resource" style="width:0%"></div>
+          </div>
+          <div class="score-val" id="val-resource">0.00</div>
+        </div>
+      </div>
+      <div class="score-note">Live data — updates automatically while the bot is active.</div>
+
+      <!-- INVENTORY STATUS -->
+      <div class="section-header" style="margin-top:16px">
+        <span class="header-tag">[ INV ]</span> INVENTORY STATUS
+        <span class="inv-status-badge" id="inv-status-badge">OFFLINE</span>
+      </div>
+      <div class="inv-panel">
+        <div class="inv-bar-wrap">
+          <div class="inv-bar-fill" id="inv-bar-fill" style="width:0%"></div>
+          <div class="inv-bar-text" id="inv-bar-text">0 / 36 slots</div>
+        </div>
+        <div class="inv-stats">
+          <div class="inv-stat">
+            <span class="inv-stat-label">FREE SLOTS</span>
+            <span class="inv-stat-val" id="inv-free">—</span>
+          </div>
+          <div class="inv-stat">
+            <span class="inv-stat-label">USED SLOTS</span>
+            <span class="inv-stat-val" id="inv-used">—</span>
+          </div>
+          <div class="inv-stat">
+            <span class="inv-stat-label">FILL RATIO</span>
+            <span class="inv-stat-val" id="inv-ratio">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <canvas id="score-chart" height="52"></canvas>
+        <div class="chart-legend">
+          <span class="chart-leg threat">THREAT</span>
+          <span class="chart-leg survival">SURVIVAL</span>
+          <span class="chart-leg resource">RESOURCE</span>
+        </div>
+      </div>
+
+      <!-- LOG -->
+      <div class="section-header" style="margin-top:20px">
+        <span class="header-tag">[ LOG ]</span> CONSOLE
+        <span class="log-counter" id="log-counter">0 lines</span>
+        <div class="log-header-btns">
+          <button class="btn-log-action" id="btn-autoscroll" onclick="toggleAutoscroll()" title="Toggle autoscroll">⇣ AUTO</button>
+          <button class="btn-log-action" onclick="copyLog()" title="Copy log">⎘ COPY</button>
+          <button class="btn-clear" onclick="clearLog()">CLR</button>
+        </div>
+      </div>
+      <div class="log-wrap" id="log-wrap">
+        <div class="log-ticker-overlay" id="log-ticker-overlay"></div>
+      <div class="log-box" id="log-box">
+        <div class="log-idle-overlay" id="log-idle">
+          <div class="log-idle-ticker">NULLBIT_AI :: TACTICAL_ENGINE_OFFLINE :: AWAITING_CONNECTION :: BOT_STATUS=IDLE :: NO_THREATS_DETECTED :: SYSTEM_STANDBY</div>
+          <div class="log-idle-ticker">COMBAT_MODULE=OFFLINE :: RESOURCE_SCORE=0.00 :: SURVIVAL_SCORE=0.00 :: THREAT_SCORE=0.00 :: WATCHDOG=INACTIVE</div>
+          <div class="log-idle-ticker">INITIALIZE_BOT_TO_BEGIN :: PRESS_LAUNCH :: NULLBIT_v3.0 :: CORE_SYSTEMS_READY :: WAITING_FOR_SIGNAL...</div>
+          <div class="log-idle-ticker">ENCRYPTION=AES256 :: AUTH=KEYAUTH :: LICENSE_CHECK=PENDING :: SECURE_CHANNEL=OPEN :: NULLBIT_SECURE</div>
+          <div class="log-idle-dots" id="idle-dots">AWAITING INPUT . . .</div>
+        </div>
+      </div>
+      <div class="log-resize-handle" id="log-resize"></div>
+      </div>
+    </section>
+
+    <!-- ─── TAB: CONFIG ─── -->
+    <section class="tab" id="tab-config">
+      <div class="section-header">
+        <span class="header-tag">[ CFG ]</span> CORE ACCESS
+        <button class="btn-save" id="btn-save-cfg" onclick="saveConfig()">SAVE</button>
+      </div>
+
+      <div class="cfg-grid">
+        <div class="cfg-group">
+          <div class="cfg-group-title">LICENSE</div>
+          <div class="cfg-row">
+            <label>License Key</label>
+            <input class="cfg-input" id="cfg-license" type="password" placeholder="XXXX-XXXX-XXXX-XXXX" />
+          </div>
+        </div>
+
+        <div class="cfg-group">
+          <div class="cfg-group-title">SERVER</div>
+          <div class="cfg-row">
+            <label>Host</label>
+            <input class="cfg-input" id="cfg-host" type="text" placeholder="play.server.com" />
+          </div>
+          <div class="cfg-row">
+            <label>Port</label>
+            <input class="cfg-input" id="cfg-port" type="number" placeholder="25565" />
+          </div>
+          <div class="cfg-row">
+            <label>Version</label>
+            <input class="cfg-input" id="cfg-version" type="text" placeholder="1.20.1" />
+          </div>
+          <div class="cfg-row">
+            <label>Auth</label>
+            <select class="cfg-input" id="cfg-auth">
+              <option value="offline">offline (cracked)</option>
+              <option value="microsoft">microsoft (Mojang)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="cfg-group">
+          <div class="cfg-group-title">BOT IDENTITY</div>
+          <div class="cfg-row">
+            <label>Username</label>
+            <input class="cfg-input" id="cfg-username" type="text" placeholder="Nullbit" />
+          </div>
+          <div class="cfg-row">
+            <label>Login Password</label>
+            <input class="cfg-input" id="cfg-password" type="password" placeholder="(empty if not needed)" />
+          </div>
+          <div class="cfg-row">
+            <label>Allowed User</label>
+            <input class="cfg-input" id="cfg-allowed-user" type="text" placeholder="YourNickname" />
+          </div>
+        </div>
+
+        <div class="cfg-group">
+          <div class="cfg-group-title">AI CONFIG</div>
+          <div class="cfg-row">
+            <label>OpenAI API Key</label>
+            <input class="cfg-input" id="cfg-openai-key" type="password" placeholder="sk-..." />
+          </div>
+          <div class="cfg-row">
+            <label>Assistant ID</label>
+            <input class="cfg-input" id="cfg-assistant-id" type="text" placeholder="asst_..." />
+          </div>
+        </div>
+
+      </div>
+
+      <div id="cfg-status" class="cfg-status"></div>
+    </section>
+
+    <!-- ─── TAB: SYSTEM ─── -->
+    <section class="tab" id="tab-system">
+      <div class="section-header">
+        <span class="header-tag">[ SYS ]</span> SYSTEM SETTINGS
+        <button class="btn-save" id="btn-save-system" onclick="saveSystemConfig()">SAVE</button>
+      </div>
+
+      <div class="cfg-grid">
+        <div class="cfg-group">
+          <div class="cfg-group-title">BEHAVIOR</div>
+          <div class="cfg-row cfg-toggle-row">
+            <label>Auto-restart on crash</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="cfg-auto-restart" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="cfg-hint">Automatically restart bot up to 3 times if it crashes</div>
+        </div>
+
+        <div class="cfg-group">
+          <div class="cfg-group-title">LAUNCHER</div>
+          <div class="cfg-row cfg-toggle-row">
+            <label>Check updates on startup</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="cfg-check-updates" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="cfg-hint">Automatically check for launcher updates every 30 minutes</div>
+        </div>
+      </div>
+
+      <div id="system-cfg-status" class="cfg-status"></div>
+    </section>
+
+    <!-- ─── TAB: SQUAD ─── -->
+    <section class="tab" id="tab-squad">
+      <div class="section-header">
+        <span class="header-tag">[ SQD ]</span> MULTI-AGENT OVERVIEW
+      </div>
+
+      <div class="squad-page">
+
+        <div class="squad-banner">
+          <div class="squad-banner-label">COMING SOON</div>
+          <div class="squad-banner-title">SQUAD MODULE</div>
+          <div class="squad-banner-sub">Run and manage multiple bots simultaneously from a single interface</div>
+        </div>
+
+        <div class="squad-features">
+
+          <div class="squad-feature-card">
+            <div class="squad-feature-icon">◈</div>
+            <div class="squad-feature-body">
+              <div class="squad-feature-title">MULTI-INSTANCE CONTROL</div>
+              <div class="squad-feature-desc">Launch, monitor and stop multiple bot instances independently. Each instance has its own log, status and configuration.</div>
+            </div>
+          </div>
+
+          <div class="squad-feature-card">
+            <div class="squad-feature-icon">◎</div>
+            <div class="squad-feature-body">
+              <div class="squad-feature-title">UNIFIED ANALYTICS</div>
+              <div class="squad-feature-desc">Aggregate performance metrics across all active agents. Track resource gathering, survival rates and threat levels in real time.</div>
+            </div>
+          </div>
+
+          <div class="squad-feature-card">
+            <div class="squad-feature-icon">◇</div>
+            <div class="squad-feature-body">
+              <div class="squad-feature-title">INDIVIDUAL PROFILES</div>
+              <div class="squad-feature-desc">Assign separate server credentials and behaviour configs to each agent. Switch profiles without restarting.</div>
+            </div>
+          </div>
+
+          <div class="squad-feature-card">
+            <div class="squad-feature-icon">⬡</div>
+            <div class="squad-feature-body">
+              <div class="squad-feature-title">AUTO-COORDINATION</div>
+              <div class="squad-feature-desc">Agents avoid conflicts over resources and territory. Intelligent task distribution keeps the squad operating at full efficiency.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="squad-footer-note">
+          Squad module will be available in a future update. Stay tuned for release notes in the UPDATE tab.
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─── TAB: DIAGNOSTICS ─── -->
+    <section class="tab" id="tab-diagnostics">
+      <div class="section-header">
+        <span class="header-tag">[ DIAG ]</span> NEURAL DIAGNOSTICS
+      </div>
+
+      <!-- TACTICAL SCORES -->
+      <div class="diag-section">
+        <div class="diag-header">
+          <span class="diag-icon">◈</span>
+          <span>TACTICAL WEIGHTS</span>
+          <span class="diag-status" id="diag-tactical-status">OFFLINE</span>
+        </div>
+        <div class="diag-scores-grid">
+          <div class="diag-score-item">
+            <div class="diag-score-label">THREAT</div>
+            <div class="diag-score-bar-wrap">
+              <div class="diag-score-bar threat" id="diag-threat-bar" style="width:0%"></div>
+            </div>
+            <div class="diag-score-val" id="diag-threat-val">0.00</div>
+          </div>
+          <div class="diag-score-item">
+            <div class="diag-score-label">SURVIVAL</div>
+            <div class="diag-score-bar-wrap">
+              <div class="diag-score-bar survival" id="diag-survival-bar" style="width:0%"></div>
+            </div>
+            <div class="diag-score-val" id="diag-survival-val">0.00</div>
+          </div>
+          <div class="diag-score-item">
+            <div class="diag-score-label">RESOURCE</div>
+            <div class="diag-score-bar-wrap">
+              <div class="diag-score-bar resource" id="diag-resource-bar" style="width:0%"></div>
+            </div>
+            <div class="diag-score-val" id="diag-resource-val">0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMBAT DEBUG -->
+      <div class="diag-section">
+        <div class="diag-header">
+          <span class="diag-icon">⚔</span>
+          <span>COMBAT TELEMETRY</span>
+          <span class="diag-status" id="diag-combat-status">IDLE</span>
+        </div>
+        <div class="diag-combat-grid" id="diag-combat-info">
+          <div class="diag-combat-item">
+            <span class="diag-label">MODE</span>
+            <span class="diag-value" id="diag-combat-mode">—</span>
+          </div>
+          <div class="diag-combat-item">
+            <span class="diag-label">TARGET DIST</span>
+            <span class="diag-value" id="diag-combat-dist">—</span>
+          </div>
+          <div class="diag-combat-item">
+            <span class="diag-label">WEAPON</span>
+            <span class="diag-value" id="diag-combat-weapon">—</span>
+          </div>
+          <div class="diag-combat-item">
+            <span class="diag-label">LAST ACTION</span>
+            <span class="diag-value" id="diag-combat-action">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- WATCHDOG STATUS -->
+      <div class="diag-section">
+        <div class="diag-header">
+          <span class="diag-icon">◉</span>
+          <span>SYSTEM WATCHDOG</span>
+          <span class="diag-status" id="diag-watchdog-status">OFFLINE</span>
+        </div>
+        <div class="diag-watchdog-info" id="diag-watchdog-info">
+          <div class="diag-watchdog-item">
+            <span class="diag-label">LAST CHECK</span>
+            <span class="diag-value" id="diag-watchdog-last">—</span>
+          </div>
+          <div class="diag-watchdog-item">
+            <span class="diag-label">LOCK HOLDER</span>
+            <span class="diag-value" id="diag-watchdog-lock">NONE</span>
+          </div>
+          <div class="diag-watchdog-item">
+            <span class="diag-label">PATH STATUS</span>
+            <span class="diag-value" id="diag-watchdog-path">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- GLITCH LOG (Critical Errors) -->
+      <div class="diag-section">
+        <div class="diag-header">
+          <span class="diag-icon">⚠</span>
+          <span>CRITICAL EVENTS</span>
+          <span class="diag-count" id="diag-error-count">0</span>
+        </div>
+        <div class="diag-glitch-log" id="diag-glitch-log">
+          <div class="diag-empty">No critical events detected</div>
+        </div>
+      </div>
+
+      <!-- RESOURCE TELEMETRY -->
+      <div class="diag-section">
+        <div class="diag-header">
+          <span class="diag-icon">◆</span>
+          <span>EXPEDITION TELEMETRY</span>
+          <span class="diag-status" id="diag-resource-status">STANDBY</span>
+        </div>
+        <div class="diag-resource-grid" id="diag-resource-info">
+          <div class="diag-resource-item">
+            <span class="diag-label">TREES CHOPPED</span>
+            <span class="diag-value" id="diag-trees">0</span>
+          </div>
+          <div class="diag-resource-item">
+            <span class="diag-label">ORES MINED</span>
+            <span class="diag-value" id="diag-ores">0</span>
+          </div>
+          <div class="diag-resource-item">
+            <span class="diag-label">FALLBACKS</span>
+            <span class="diag-value" id="diag-fallbacks">0</span>
+          </div>
+          <div class="diag-resource-item">
+            <span class="diag-label">DANGER STOPS</span>
+            <span class="diag-value" id="diag-danger-stops">0</span>
+          </div>
+        </div>
+        <div class="diag-expedition-summary" id="diag-expedition-summary" style="display:none">
+          <div class="diag-summary-header">LAST EXPEDITION SUMMARY</div>
+          <div class="diag-summary-content" id="diag-summary-content">—</div>
+        </div>
+      </div>
+
+      <!-- USER OVERRIDE STATUS -->
+      <div class="diag-section" id="diag-override-section" style="display:none">
+        <div class="diag-header">
+          <span class="diag-icon">👤</span>
+          <span>USER OVERRIDE</span>
+          <span class="diag-status active">ACTIVE</span>
+        </div>
+        <div class="diag-override-info">
+          <div class="diag-override-message">
+            AI intervention blocked by user until <span id="diag-override-time">—</span>
+          </div>
+          <div class="diag-override-reason" id="diag-override-reason">Manual command issued</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── TAB: UPDATE ─── -->
+    <section class="tab" id="tab-update">
+      <div class="section-header">
+        <span class="header-tag">[ UPD ]</span> AUTO-UPDATE
+      </div>
+
+      <div class="update-info-box" id="update-info-box">
+        <div class="update-state" id="update-state">Press CHECK to query GitHub Releases</div>
+      </div>
+
+      <div class="update-actions">
+        <button class="btn-action" onclick="checkUpdate()">CHECK FOR UPDATE</button>
+        <button class="btn-action btn-dl" id="btn-dl" onclick="doUpdate()" style="display:none">DOWNLOAD &amp; INSTALL</button>
+      </div>
+
+      <div class="progress-wrap" id="progress-wrap" style="display:none">
+        <div class="progress-label" id="progress-label">DOWNLOADING... 0%</div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="section-header" style="margin-top:24px">
+        <span class="header-tag">[ NOTES ]</span> PATCH NOTES
+      </div>
+      <div class="patch-notes" id="patch-notes">—</div>
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

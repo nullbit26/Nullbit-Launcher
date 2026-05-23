@@ -1,0 +1,1816 @@
+/**
+ * NULLBIT Launcher — Renderer logic
+ */
+
+// ────────────────────────────────────────────
+//  Click glitch ripple
+// ────────────────────────────────────────────
+const RIPPLE_CHARS = '0123456789ABCDEF#@!%&*';
+
+let lastRipple = 0;
+document.addEventListener('click', (e) => {
+  // 10/10 premium glitch on all buttons
+  const btn = e.target.closest('button, .btn-launch, .btn-clear, .btn-log-action, .btn-save, .btn-action');
+  if (btn && btn.textContent.trim()) {
+    applyGlitchEffect(btn);
+  }
+  if (e.target.closest('.log-resize-handle, .log-box, input, textarea, select')) return;
+  const now = Date.now();
+  if (now - lastRipple < 150) return;
+  lastRipple = now;
+  const count = 3 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.style.cssText = `
+      position: fixed;
+      left: ${e.clientX + (Math.random() - 0.5) * 28}px;
+      top: ${e.clientY + (Math.random() - 0.5) * 28}px;
+      font-family: 'Courier New', monospace;
+      font-size: ${10 + Math.floor(Math.random() * 6)}px;
+      color: #ff0000;
+      text-shadow: 0 0 8px rgba(255,0,0,1), 0 0 14px rgba(255,0,0,0.6);
+      pointer-events: none;
+      z-index: 99999;
+      letter-spacing: 2px;
+      transform: translate(-50%, -50%);
+      white-space: nowrap;
+    `;
+    el.textContent = Array.from({length: 2 + Math.floor(Math.random()*2)},
+      () => RIPPLE_CHARS[Math.floor(Math.random() * RIPPLE_CHARS.length)]).join('');
+    document.body.appendChild(el);
+
+    let ticks = 0;
+    const maxTicks = 6 + Math.floor(Math.random() * 5);
+    const iv = setInterval(() => {
+      if (!el.isConnected) { clearInterval(iv); return; }
+      ticks++;
+      el.textContent = Array.from({length: 2 + Math.floor(Math.random()*2)},
+        () => RIPPLE_CHARS[Math.floor(Math.random() * RIPPLE_CHARS.length)]).join('');
+      const progress = ticks / maxTicks;
+      el.style.opacity = (1 - progress).toFixed(2);
+      el.style.transform = `translate(-50%, calc(-50% - ${progress * 18}px))`;
+      if (ticks >= maxTicks) { clearInterval(iv); el.remove(); }
+    }, 40 + Math.floor(Math.random() * 20));
+  }
+});
+
+// ────────────────────────────────────────────
+//  Boot sequence
+// ────────────────────────────────────────────
+const BOOT_SEQUENCE = [
+  { text: 'NULLBIT SYSTEMS v3.0 — INITIALIZING...', cls: 'log-sys',  pause: 0   },
+  { text: 'LOADING TACTICAL ENGINE..................OK', cls: 'log-raw', pause: 280 },
+  { text: 'CHECKING LICENSE MODULE..................OK', cls: 'log-raw', pause: 280 },
+  { text: '[ SYSTEM READY ]', cls: 'log-ok',  pause: 260 },
+  { text: 'NULLBIT LAUNCHER READY', cls: 'log-sys',  pause: 200 },
+];
+
+function typeLogLine(text, cls, cb, pendingDiv) {
+  const box = logBox();
+  const div = pendingDiv || document.createElement('div');
+  if (!pendingDiv) {
+    div.className = 'log-line ' + cls;
+    box.appendChild(div);
+  }
+  box.scrollTop = box.scrollHeight;
+  let i = 0;
+  const iv = setInterval(() => {
+    div.textContent = text.slice(0, i + 1);
+    box.scrollTop = box.scrollHeight;
+    i++;
+    if (i >= text.length) { clearInterval(iv); if (cb) setTimeout(cb, 80); }
+  }, 28);
+  return div;
+}
+
+function runBootSequence() {
+  const box = logBox();
+  let idx = 0;
+  let firstDiv = null;
+
+  function next() {
+    if (idx >= BOOT_SEQUENCE.length) {
+      // Remove dots from first line (initializing done)
+      if (firstDiv) firstDiv.querySelectorAll('.sys-dot').forEach(d => d.remove());
+      return;
+    }
+    const { text, cls, pause } = BOOT_SEQUENCE[idx++];
+    setTimeout(() => {
+      if (idx === 1) {
+        // First line — add animated dots after typing
+        const div = document.createElement('div');
+        div.className = 'log-line ' + cls;
+        div.dataset.pending = '1';
+        box.appendChild(div);
+        firstDiv = div;
+        let i = 0;
+        const clean = text.replace(/\.+$/, '');
+        const iv = setInterval(() => {
+          div.textContent = clean.slice(0, i + 1);
+          box.scrollTop = box.scrollHeight;
+          i++;
+          if (i >= clean.length) {
+            clearInterval(iv);
+            div.innerHTML = clean + '<span class="sys-dot d1">.</span><span class="sys-dot d2">.</span><span class="sys-dot d3">.</span>';
+            setTimeout(next, 80);
+          }
+        }, 28);
+      } else {
+        typeLogLine(text, cls, next);
+      }
+    }, pause);
+  }
+  next();
+}
+
+// ────────────────────────────────────────────
+//  Dynamic background tickers
+// ────────────────────────────────────────────
+const TICKER_TEXTS = [
+  '1·0·1·1·0·0·1·0·...·1·1·0·1·0·0·1·...·1·0·1·0·1·0·1·...·1·0·0·1·0·1·1·0·...·1·0·0·1·1·0·1·0',
+  '0xA3F2·····0x1C8E·····0xFF20·····0xDEAD·····0xBEEF·····0xC0DE·····0xF00D·····0xA3F2·····0x1C8E',
+  '·01··00··11··10··01·····11··00··10··01·····00··11··10··01··11·····00··10··01··00··11·····10·',
+  'THREAT···0.000···SURVIVAL···0.000···RESOURCE···0.000···NAV=NULL···PVP=NULL···CORE=STANDBY',
+  '·1·0·1·1·0·0·1·0·1·1·0·1·0·0·1·1·0·1·0·1·0·1·0·1·1·0·0·1·0·1·1·0·1·0·0·1·1·0·1·0·1·1·',
+  'SYS···0xNULL···ERR=0···WARN=0···OK=0···UPTIME=00:00···MEM=0KB···CPU=0%···PING=0ms',
+  '0xFF···0x00···0xA1···0xB2···0xC3···0xD4···0xE5···0xF6···0x07···0x18···0x29···0x3A',
+  '........·........·........·........·........·........·........·........·........',
+  '· · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·',
+  '▪ · · ▪ · · · ▪ · · ▪ · ▪ · · · ▪ · · · ▪ · ▪ · · ▪ · · · ▪ · · ▪ · · ▪ · · ·',
+];
+const TICKER_COLORS = [
+  'rgba(192,57,43,0.30)', 'rgba(192,57,43,0.22)', 'rgba(192,57,43,0.18)',
+  'rgba(192,57,43,0.26)', 'rgba(192,57,43,0.14)', 'rgba(192,57,43,0.20)',
+  'rgba(220,50,50,0.28)', 'rgba(180,40,40,0.16)', 'rgba(200,60,60,0.24)',
+];
+
+let tickersActivated = false;
+function activateTickers() {
+  if (tickersActivated) return;
+  tickersActivated = true;
+  const overlay = document.getElementById('log-ticker-overlay');
+  if (overlay) overlay.classList.add('active');
+}
+
+function buildTickers() {
+  const overlay = document.getElementById('log-ticker-overlay');
+  if (!overlay) return;
+  overlay.innerHTML = '';
+  const count = 20;
+  const maxTop = 560;
+  for (let i = 0; i < count; i++) {
+    const text  = TICKER_TEXTS[Math.floor(Math.random() * TICKER_TEXTS.length)];
+    const color = TICKER_COLORS[Math.floor(Math.random() * TICKER_COLORS.length)];
+    const top   = Math.floor(Math.random() * maxTop);
+    const dur   = (8 + Math.random() * 12).toFixed(1);
+    const delay = -(Math.random() * 14).toFixed(1);
+    const isDot = text.includes('▪') || text.startsWith('·') || text.startsWith('.');
+    const div = document.createElement('div');
+    div.className = 'log-bg-ticker' + (isDot ? ' dot-line' : '');
+    div.style.cssText = `color:${color};top:${top}px;animation-duration:${dur}s;animation-delay:${delay}s`;
+    const span = document.createElement('span');
+    span.style.cssText = `animation-duration:${dur}s;animation-delay:${delay}s`;
+    span.textContent = text;
+    div.appendChild(span);
+    overlay.appendChild(div);
+
+    // Live char flicker
+    const HEX = '0123456789ABCDEF';
+    setInterval(() => {
+      if (!span.isConnected) return;
+      const arr = text.split('');
+      const idx = Math.floor(Math.random() * arr.length);
+      if (arr[idx] !== ' ' && arr[idx] !== '·' && arr[idx] !== '▪' && arr[idx] !== '.') {
+        arr[idx] = HEX[Math.floor(Math.random() * 16)];
+        span.textContent = arr.join('');
+        setTimeout(() => { if (span.isConnected) span.textContent = text; }, 90);
+      }
+    }, 500 + Math.random() * 1200);
+  }
+}
+
+// ────────────────────────────────────────────
+//  Log resize
+// ────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  runBootSequence();
+  buildTickers();
+  setInterval(buildTickers, 30000);
+
+  const handle = document.getElementById('log-resize');
+  const box    = document.getElementById('log-box');
+  if (!handle || !box) return;
+  let dragging = false, startY = 0, startH = 0;
+  handle.addEventListener('mousedown', e => {
+    dragging = true;
+    startY = e.clientY;
+    startH = box.offsetHeight;
+    document.body.style.cursor = 'ns-resize';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const newH = Math.max(80, Math.min(600, startH + (e.clientY - startY)));
+    box.style.height = newH + 'px';
+  });
+  document.addEventListener('mouseup', () => {
+    if (dragging) buildTickers();
+    dragging = false;
+    document.body.style.cursor = '';
+  });
+});
+
+// ────────────────────────────────────────────
+//  Tab switching
+// ────────────────────────────────────────────
+const NAV_GLITCH_CHARS = '!@#$%^&*<>[]{}|\\/?~';
+// 10/10 premium glitch effect - instant restart, wave infection, smooth decay
+function applyGlitchEffect(el) {
+  const span = el.querySelector('span') || el;
+  const original = span.dataset.original || (span.dataset.original = span.textContent);
+  // Clear all pending animations
+  if (span._restoreTimeout) clearTimeout(span._restoreTimeout);
+  if (span._restoreInterval) clearInterval(span._restoreInterval);
+  if (span._buildInterval) clearInterval(span._buildInterval);
+  // 10/10: instant full glitch reset - no smooth transition, pure chaos
+  const chars = original.split('');
+  const glitched = chars.map(c => c === ' ' ? ' ' : NAV_GLITCH_CHARS[Math.floor(Math.random() * NAV_GLITCH_CHARS.length)]);
+  let infected = 0;
+  const nonSpaceCount = chars.filter(c => c !== ' ').length;
+  // Hard glitch flash on start
+  span.textContent = glitched.join('');
+  span.style.textShadow = '4px 0 rgba(255,0,0,1), -4px 0 rgba(0,200,255,0.9)';
+  setTimeout(() => {
+    span._buildInterval = setInterval(() => {
+      infected++;
+      const revealCount = Math.floor((infected / 5) * nonSpaceCount);
+      span.textContent = chars.map((c, i) => {
+        if (c === ' ') return ' ';
+        const charIndex = chars.slice(0, i).filter(x => x !== ' ').length;
+        return charIndex < revealCount ? glitched[i] : c;
+      }).join('');
+      span.style.textShadow = `${Math.min(infected, 4)}px 0 rgba(255,0,0,0.95), -${Math.min(infected, 4)}px 0 rgba(0,200,255,0.85)`;
+      if (infected >= 5) {
+        clearInterval(span._buildInterval);
+        span._buildInterval = null;
+        // Hold full glitch, wait for clicks to stop
+        span._restoreTimeout = setTimeout(() => {
+          // Premium decay: characters restore one by one with random glitch flickers
+          let restored = 0;
+          const totalSteps = chars.length * 2; // Each char gets 2 chances before restoring
+          span._restoreInterval = setInterval(() => {
+            restored++;
+            const progress = restored / totalSteps;
+            if (restored >= totalSteps) {
+              span.textContent = original;
+              span.style.textShadow = '';
+              clearInterval(span._restoreInterval);
+              span._restoreInterval = null;
+              return;
+            }
+            // Wave restoration with occasional glitch flickers
+            span.textContent = chars.map((c, i) => {
+              if (c === ' ') return ' ';
+              const charProgress = (restored - i * 0.3) / (totalSteps * 0.7);
+              if (charProgress > 1) return c; // Fully restored
+              if (charProgress < 0) {
+                // Still glitched
+                return Math.random() < 0.8 ? glitched[i] : NAV_GLITCH_CHARS[Math.floor(Math.random() * NAV_GLITCH_CHARS.length)];
+              }
+              // Transition zone: flicker between glitch and original
+              const flickerProb = 0.6 - charProgress * 0.5;
+              return Math.random() < flickerProb
+                ? NAV_GLITCH_CHARS[Math.floor(Math.random() * NAV_GLITCH_CHARS.length)]
+                : c;
+            }).join('');
+            const shadowIntensity = Math.max(0, 1 - progress * 1.4);
+            span.style.textShadow = shadowIntensity > 0
+              ? `${Math.round(shadowIntensity * 4)}px 0 rgba(255,0,0,${shadowIntensity}), -${Math.round(shadowIntensity * 4)}px 0 rgba(0,200,255,${shadowIntensity * 0.8})`
+              : '';
+          }, 25);
+        }, 180); // 180ms hold before starting restore
+      }
+    }, 28);
+  }, 30); // Brief flash before wave starts
+}
+
+function switchTab(el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const tabs = document.querySelectorAll('.tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  applyGlitchEffect(el);
+  const target = document.getElementById('tab-' + el.dataset.tab);
+  if (target) {
+    target.classList.add('active', 'tab-enter');
+    requestAnimationFrame(() => requestAnimationFrame(() => target.classList.remove('tab-enter')));
+  }
+}
+
+// ────────────────────────────────────────────
+//  Log helpers
+// ────────────────────────────────────────────
+const LOG_MAX = 300;
+const logBox = () => document.getElementById('log-box');
+
+// Strip ANSI escape codes
+function stripAnsi(str) {
+  return str.replace(/\x1B\[[0-9;]*[mGKHF]/g, '')
+            .replace(/\[\d+m/g, '');
+}
+
+// Random glitch char substitution for raw lines
+const GLITCH_CHARS = ['#','@','_','!','?','█','▓','▒','░','$','%','&'];
+function glitchify(text, intensity = 0.08) {
+  return text.split('').map(c => {
+    if (c === ' ' || Math.random() > intensity) return c;
+    return Math.random() < 0.5 ? GLITCH_CHARS[Math.floor(Math.random()*GLITCH_CHARS.length)] : c;
+  }).join('');
+}
+
+// Clean up bot output lines for display
+function transformLine(line) {
+  // Replace title line
+  line = line.replace(/AI\s*Bot\s*[-–]?\s*License\s*Verification/i, 'ACCESSING AI CORE AUTHORIZATION...');
+  // Replace box-drawing chars with styled equivalents
+  line = line.replace(/[\u2500-\u257F\u2550-\u256C]+/g, s => '─'.repeat(Math.min(s.length, 40)));
+  // Replace emoji/icons with ASCII tags
+  line = line.replace(/✓|✅/g, '[OK]');
+  line = line.replace(/✗|❌|✘|×/g, '[!!]');
+  line = line.replace(/⚠|⚠️/g, '[!!]');
+  line = line.replace(/📄|📁|📂|🗂/g, '[FILE]');
+  line = line.replace(/[^\x00-\x7F\u2500-\u257F\u2550-\u256C\u2588-\u259F]/g, '');
+  return line.trim();
+}
+
+function appendLog(text, cls = 'log-raw') {
+  hideIdleOverlay();
+  const box = logBox();
+  const lines = stripAnsi(text).split('\n').filter(l => l.trim());
+  lines.forEach(rawLine => {
+    const line = transformLine(rawLine);
+    if (!line) return;
+    const lineClass = classifyLine(line, cls);
+    const div = document.createElement('div');
+    div.className = 'log-line ' + lineClass;
+
+    const isLicenseFailed = /license.*fail|fail.*license/i.test(line);
+    const isAuthLine = /ACCESSING AI CORE/i.test(line);
+
+    if (isLicenseFailed) {
+      div.className = 'log-line log-license-fail';
+      div.textContent = '[ !! ] ' + line.replace(/^\[!!\]\s*/,'');
+      // Aggressive glitch loop
+      const orig = div.textContent;
+      const iv = setInterval(() => {
+        if (!div.isConnected) { clearInterval(iv); return; }
+        div.textContent = glitchify(orig, 0.18);
+        setTimeout(() => { if (div.isConnected) div.textContent = orig; }, 80);
+      }, 400 + Math.random() * 300);
+    } else if (isAuthLine) {
+      div.className = 'log-line log-auth';
+      // Remove dots from ALL previous pending/auth lines (real terminal behavior)
+      box.querySelectorAll('.log-line.log-auth, .log-line[data-pending]').forEach(prev => {
+        if (prev !== div) {
+          // Remove dots completely, keep only clean text
+          const text = prev.textContent.replace(/\.+$/, '');
+          prev.textContent = text;
+          prev.querySelectorAll('.auth-dot, .sys-dot').forEach(d => d.remove());
+          delete prev.dataset.pending;
+        }
+      });
+      // Add dots only to current (active) line
+      const clean = line.replace(/\.+$/, '');
+      div.innerHTML = clean + '<span class="auth-dot d1">.</span><span class="auth-dot d2">.</span><span class="auth-dot d3">.</span>';
+    } else if (lineClass === 'log-raw') {
+      div.textContent = glitchify(line, 0.04);
+      const orig = line;
+      const iv = setInterval(() => {
+        if (!div.isConnected) { clearInterval(iv); return; }
+        div.textContent = glitchify(orig, 0.04);
+        setTimeout(() => { if (div.isConnected) div.textContent = orig; }, 120);
+      }, 2000 + Math.random() * 2000);
+    } else if (/\.{2,}$/.test(line)) {
+      const clean = line.replace(/\.+$/, '');
+      // New pending line — remove dots from ALL previous pending lines (real terminal)
+      box.querySelectorAll('.log-line[data-pending], .log-line.log-auth').forEach(prev => {
+        if (prev !== div) {
+          // Remove dots completely, keep clean text
+          const text = prev.textContent.replace(/\.+$/, '');
+          prev.textContent = text;
+          prev.querySelectorAll('.sys-dot, .auth-dot').forEach(d => d.remove());
+          delete prev.dataset.pending;
+        }
+      });
+      div.dataset.pending = '1';
+      div.innerHTML = clean + '<span class="sys-dot d1">.</span><span class="sys-dot d2">.</span><span class="sys-dot d3">.</span>';
+    } else {
+      // Any non-pending line completes the last pending operation (real terminal behavior)
+      const allPending = box.querySelectorAll('.log-line[data-pending]');
+      if (allPending.length) {
+        const last = allPending[allPending.length - 1];
+        const text = last.textContent.replace(/\.+$/, '');
+        last.textContent = text;
+        last.querySelectorAll('.sys-dot, .auth-dot').forEach(d => d.remove());
+        delete last.dataset.pending;
+      }
+      // Also handle explicit OK/ERR markers
+      if (/\[\s*OK\s*\]|\[\s*ERR\s*\]/i.test(line)) {
+        // Already handled above, but keep regex for any edge cases
+      }
+      div.textContent = line;
+    }
+    box.appendChild(div);
+    logLineCount++;
+  });
+  while (box.children.length > LOG_MAX) box.removeChild(box.firstChild);
+  if (autoScroll) box.scrollTop = box.scrollHeight;
+  updateLogCounter();
+}
+
+function classifyLine(line, fallback) {
+  if (/\[ OK \]/i.test(line))   return 'log-ok';
+  if (/\[ ERR \]/i.test(line))  return 'log-err';
+  if (/\[ SYS \]/i.test(line))  return 'log-sys';
+  if (/\[ WARN \]/i.test(line)) return 'log-warn';
+  if (fallback === 'log-err')    return 'log-err';
+  return 'log-raw';
+}
+
+function sysLog(msg) { appendLog(`[ SYS ] ${msg}`, 'log-sys'); }
+function okLog(msg)  { appendLog(`[ OK  ] ${msg}`, 'log-ok'); }
+function errLog(msg) { appendLog(`[ ERR ] ${msg}`, 'log-err'); }
+
+// ────────────────────────────────────────────
+//  Log utilities
+// ────────────────────────────────────────────
+let autoScroll = true;
+let logLineCount = 0;
+
+function updateLogCounter() {
+  const el = document.getElementById('log-counter');
+  if (el) el.textContent = logLineCount + ' lines';
+}
+
+function toggleAutoscroll() {
+  autoScroll = !autoScroll;
+  const btn = document.getElementById('btn-autoscroll');
+  if (btn) {
+    btn.classList.toggle('off', !autoScroll);
+    btn.textContent = autoScroll ? '⇣ AUTO' : '⇣ OFF';
+  }
+}
+
+function copyLog() {
+  const box = logBox();
+  const lines = [...box.querySelectorAll('.log-line')].map(d => d.textContent).join('\n');
+  navigator.clipboard.writeText(lines).then(() => {
+    const btn = document.querySelector('[onclick="copyLog()"]');
+    if (btn) {
+      const orig = btn.dataset.original || btn.textContent;
+      btn.textContent = '✓ COPIED';
+      btn.dataset.original = '✓ COPIED';
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.dataset.original = orig;
+      }, 1500);
+    }
+  });
+}
+
+function clearLog() {
+  logLineCount = 0;
+  updateLogCounter();
+  const box = logBox();
+  box.innerHTML = '';
+  box.insertAdjacentHTML('afterbegin', `
+    <div class="log-idle-overlay" id="log-idle">
+      <div class="log-idle-ticker">NULLBIT_AI :: TACTICAL_ENGINE_OFFLINE :: AWAITING_CONNECTION :: BOT_STATUS=IDLE :: NO_THREATS_DETECTED :: SYSTEM_STANDBY</div>
+      <div class="log-idle-ticker">COMBAT_MODULE=OFFLINE :: RESOURCE_SCORE=0.00 :: SURVIVAL_SCORE=0.00 :: THREAT_SCORE=0.00 :: WATCHDOG=INACTIVE</div>
+      <div class="log-idle-ticker">INITIALIZE_BOT_TO_BEGIN :: PRESS_LAUNCH :: NULLBIT_v3.0 :: CORE_SYSTEMS_READY :: WAITING_FOR_SIGNAL...</div>
+      <div class="log-idle-ticker">ENCRYPTION=AES256 :: AUTH=KEYAUTH :: LICENSE_CHECK=PENDING :: SECURE_CHANNEL=OPEN :: NULLBIT_SECURE</div>
+      <div class="log-idle-dots">AWAITING INPUT . . .</div>
+    </div>`);
+}
+
+function hideIdleOverlay() {
+  const overlay = document.getElementById('log-idle');
+  if (overlay) overlay.remove();
+}
+
+// ────────────────────────────────────────────
+//  Bot status
+// ────────────────────────────────────────────
+let botRunning = false;
+
+const CRACK_TEXTS = [
+  '0xDEAD::0xBEEF::NULL::ERR::0xFF20::SYS_HALT::CORE_DUMP::0xC0DE::SIGNAL_LOST::REINIT',
+  'if(threat>0){flee()}else{gather()}//NULLBIT_ENGINE::v3::TACTICAL::ONLINE::0xA3F2',
+  'PROCESS_ID=4782::STATE=TRANSITION::MEM=0xFFFF::CPU=98%::WATCHDOG=RESET::BOOT',
+  '01001110 01010101 01001100 01001100 01000010 01001001 01010100::DECODE::OK',
+  'AUTH_TOKEN::KEYAUTH::VERIFIED::SESSION=0xF4A2::ENCRYPT::AES256::HANDSHAKE::OK',
+];
+
+const RAIN_CHARS = '0123456789ABCDEF01';
+let rainIntervals = [];
+
+function buildRainCols(mode) {
+  const rain = document.getElementById('g-rain');
+  if (!rain) return;
+  rain.innerHTML = '';
+  rainIntervals.forEach(clearInterval);
+  rainIntervals = [];
+
+  const colCount = 2 + Math.floor(Math.random() * 2);
+  const rowCount = Math.floor(window.innerHeight / 15);
+
+  for (let c = 0; c < colCount; c++) {
+    const col = document.createElement('div');
+    col.className = 'g-rain-col';
+    col.style.animationDelay = (c * 0.05) + 's';
+
+    // Random X position in center zone, spaced so columns don't overlap
+    const xMin = window.innerWidth * 0.35 + c * (window.innerWidth * 0.1);
+    const xRange = window.innerWidth * 0.06;
+    col.style.position = 'absolute';
+    col.style.left = Math.round(xMin + Math.random() * xRange) + 'px';
+    col.style.top = '0';
+
+    const goDown = Math.random() > 0.5;
+    const speed = 35 + Math.floor(Math.random() * 30);
+
+    // Build char array
+    const chars = [];
+    for (let r = 0; r < rowCount; r++) {
+      chars.push(RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)]);
+    }
+
+    // Render
+    const render = () => {
+      col.innerHTML = chars.map(ch => `<span>${ch}</span>`).join('');
+    };
+    render();
+    rain.appendChild(col);
+
+    // Scroll: shift array up or down
+    const scrollIv = setInterval(() => {
+      if (goDown) {
+        chars.unshift(RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)]);
+        chars.pop();
+      } else {
+        chars.push(RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)]);
+        chars.shift();
+      }
+      // Also randomise a few chars in place for flicker
+      for (let i = 0; i < 3; i++) {
+        const idx = Math.floor(Math.random() * chars.length);
+        chars[idx] = RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)];
+      }
+      render();
+    }, speed);
+    rainIntervals.push(scrollIv);
+  }
+}
+
+function triggerGlitchFlash(mode = 'launch') {
+  const el = document.getElementById('glitch-flash');
+  const crackEl = document.getElementById('g-crack-text');
+  if (!el) return;
+  el.className = 'glitch-flash';
+  void el.offsetWidth;
+  if (crackEl) crackEl.textContent = CRACK_TEXTS[Math.floor(Math.random() * CRACK_TEXTS.length)];
+  buildRainCols(mode);
+  el.classList.add(mode);
+  setTimeout(() => {
+    el.className = 'glitch-flash';
+    rainIntervals.forEach(clearInterval);
+    rainIntervals = [];
+  }, 700);
+}
+
+let uptimeInterval = null;
+let uptimeStart = null;
+function startUptime() {
+  uptimeStart = Date.now();
+  const el = document.getElementById('status-uptime');
+  if (uptimeInterval) clearInterval(uptimeInterval);
+  uptimeInterval = setInterval(() => {
+    if (!el) return;
+    const s = Math.floor((Date.now() - uptimeStart) / 1000);
+    const h = String(Math.floor(s / 3600)).padStart(2, '0');
+    const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+    const sec = String(s % 60).padStart(2, '0');
+    el.textContent = `${h}:${m}:${sec}`;
+  }, 1000);
+}
+function stopUptime() {
+  if (uptimeInterval) { clearInterval(uptimeInterval); uptimeInterval = null; }
+  const el = document.getElementById('status-uptime');
+  if (el) el.textContent = '00:00:00';
+}
+
+// Universal function to stop ALL animated dots
+function stopAllDots() {
+  // Stop auth dots
+  document.querySelectorAll('.auth-dot').forEach(dot => {
+    dot.style.animation = 'none';
+    dot.style.opacity = '1';
+  });
+  // Stop sys dots (pending operations)
+  document.querySelectorAll('.sys-dot').forEach(dot => {
+    dot.style.animation = 'none';
+    dot.style.opacity = '1';
+  });
+}
+
+function setBotRunning(running) {
+  // Guard against duplicate calls with same state
+  if (botRunning === running) return;
+  
+  botRunning = running;
+  const btn    = document.getElementById('btn-launch');
+  const label  = document.getElementById('btn-launch-text');
+  const tbWrap = document.getElementById('titlebar-status');
+  const tbTxt  = document.getElementById('tb-status-text');
+
+  triggerGlitchFlash(running ? 'launch' : 'stop');
+
+  if (running) {
+    if (btn) {
+      btn.classList.add('running');
+      btn.classList.remove('pulse');
+      // Clear glitch effect dataset to prevent old text restoration
+      if (btn.dataset) delete btn.dataset.original;
+    }
+    // Force text update - always set to STOP BOT when running
+    if (label) {
+      label.textContent = '■ STOP BOT';
+      // Clear any glitch interval that might restore old text
+      if (label._restoreTimeout) clearTimeout(label._restoreTimeout);
+      if (label._restoreInterval) clearInterval(label._restoreInterval);
+      // Double-check after small delay to catch any race conditions
+      setTimeout(() => {
+        if (botRunning && label.textContent !== '■ STOP BOT') {
+          label.textContent = '■ STOP BOT';
+        }
+      }, 100);
+    }
+    startUptime();
+    if (tbWrap) tbWrap.className = 'titlebar-status online';
+    if (tbTxt)  tbTxt.textContent = 'ONLINE';
+    stopAllDots();
+  } else {
+    if (btn) {
+      btn.classList.remove('running');
+      btn.classList.add('pulse');
+    }
+    if (label) label.textContent = '▶ LAUNCH BOT';
+    stopUptime();
+    if (tbWrap) tbWrap.className = 'titlebar-status offline';
+    if (tbTxt)  tbTxt.textContent = 'OFFLINE';
+  }
+}
+
+// ────────────────────────────────────────────
+//  Toast notifications
+// ────────────────────────────────────────────
+function showToast(msg, type = 'ok', duration = 3000) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const icons = { ok: '▶', err: '✖', warn: '⚠' };
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type] || '●'}</span>
+    <span class="toast-msg">${msg}</span>
+    <div class="toast-bar" style="animation-duration:${duration}ms"></div>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('hiding');
+    setTimeout(() => toast.remove(), 320);
+  }, duration);
+}
+
+// ── License validation ──
+function validateLicense(key) {
+  if (!key || key.length < 10) return { valid: false, reason: 'EMPTY_KEY' };
+  // Format: XXXX-XXXX-XXXX-XXXX or any 16+ chars
+  const clean = key.replace(/-/g, '');
+  if (clean.length < 16) return { valid: false, reason: 'TOO_SHORT' };
+  // Check expiration (demo: keys valid for 30 days from first use)
+  // In production: check online with your server
+  return { valid: true };
+}
+
+function updateLicenseStatus(key) {
+  const statusEl = document.getElementById('license-status');
+  if (!statusEl) return;
+  const validation = validateLicense(key);
+  if (validation.valid) {
+    statusEl.textContent = 'LICENSED';
+    statusEl.classList.add('valid');
+  } else {
+    statusEl.textContent = 'UNLICENSED';
+    statusEl.classList.remove('valid');
+  }
+}
+
+let isToggling = false;
+async function toggleBot() {
+  if (isToggling) return;
+  isToggling = true;
+
+  // Validate license before launch
+  const licenseKey = document.getElementById('cfg-license')?.value?.trim();
+  const validation = validateLicense(licenseKey);
+  if (!validation.valid) {
+    errLog(`LICENSE ERROR: ${validation.reason} — Enter valid key in CORE ACCESS`);
+    showToast('LICENSE INVALID — CHECK CORE ACCESS', 'err', 5000);
+    isToggling = false;
+    return;
+  }
+
+  const btn = document.getElementById('btn-launch');
+  if (btn) {
+    btn.classList.remove('btn-firing');
+    void btn.offsetWidth;
+    btn.classList.add('btn-firing');
+    setTimeout(() => btn.classList.remove('btn-firing'), 400);
+  }
+  try {
+    if (botRunning) {
+      sysLog('STOPPING BOT...');
+      const r = await launcher.stopBot();
+      if (r.error) {
+        errLog('STOP ERROR: ' + r.error);
+        showToast('STOP ERROR: ' + r.error, 'err', 4000);
+      } else {
+        showToast('BOT STOPPED', 'warn', 3000);
+      }
+    } else {
+      sysLog('INITIALIZING BOT...');
+      const r = await launcher.launchBot();
+      if (r.error) {
+        errLog('LAUNCH ERROR: ' + r.error);
+        if (r.error === 'EXE_NOT_FOUND') {
+          errLog('AIBot.exe not found. Place it in the same folder as the launcher.');
+          if (r.path) errLog('Looking at: ' + r.path);
+        }
+        showToast('LAUNCH FAILED: ' + r.error, 'err', 5000);
+      } else {
+        okLog('BOT PROCESS STARTED');
+        showToast('BOT ONLINE', 'ok', 3000);
+      }
+    }
+  } finally {
+    isToggling = false;
+  }
+}
+
+// ────────────────────────────────────────────
+//  Tactical score parsing & Diagnostics
+//  Bot prints JSON lines: {"type":"scores","threatScore":0.3,...}
+// ────────────────────────────────────────────
+function tryParseScores(text) {
+  const lines = text.split('\n');
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t.startsWith('{')) continue;
+    try {
+      const obj = JSON.parse(t);
+      switch (obj.type) {
+        case 'scores':
+          updateScores(obj);
+          updateDiagScores(obj);
+          break;
+        case 'combat':
+          updateCombatDiag(obj);
+          break;
+        case 'watchdog':
+          updateWatchdogDiag(obj);
+          break;
+        case 'resource':
+          updateResourceDiag(obj);
+          break;
+        case 'inv':
+          updateInventoryUI(obj);
+          break;
+        case 'override':
+          updateOverrideDiag(obj);
+          break;
+        case 'error':
+          addGlitchLog(obj);
+          break;
+      }
+    } catch (_) {}
+  }
+}
+
+const CHART_MAX = 80;
+const chartHistory = { threat: [], survival: [], resource: [] };
+
+function updateScores({ threatScore = 0, survivalScore = 0, resourceScore = 0 }) {
+  const set = (id, val) => {
+    const pct = Math.min(100, Math.max(0, Math.round(val * 100)));
+    document.getElementById('bar-' + id).style.width = pct + '%';
+    document.getElementById('val-' + id).textContent = val.toFixed(2);
+  };
+  set('threat',   threatScore);
+  set('survival', survivalScore);
+  set('resource', resourceScore);
+
+  chartHistory.threat.push(threatScore);
+  chartHistory.survival.push(survivalScore);
+  chartHistory.resource.push(resourceScore);
+  if (chartHistory.threat.length > CHART_MAX) {
+    chartHistory.threat.shift();
+    chartHistory.survival.shift();
+    chartHistory.resource.shift();
+  }
+  drawChart();
+}
+
+function drawChart() {
+  const canvas = document.getElementById('score-chart');
+  if (!canvas) return;
+  const W = canvas.offsetWidth;
+  if (!W) return;
+  canvas.width = W;
+  const H = canvas.height;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  const COLORS = {
+    threat:   '#e03a3a',
+    survival: '#3ae07a',
+    resource: '#4a9eff',
+  };
+
+  for (const [key, color] of Object.entries(COLORS)) {
+    const data = chartHistory[key];
+    if (data.length < 2) continue;
+    if (data.every(v => v === 0)) continue;
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 4;
+    for (let i = 0; i < data.length; i++) {
+      const x = (i / (CHART_MAX - 1)) * W;
+      const y = H - data[i] * (H - 4) - 2;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i = 1; i < 4; i++) {
+    const y = Math.round((H / 4) * i) + 0.5;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+}
+
+// ────────────────────────────────────────────
+//  DIAGNOSTICS Panel Updates
+// ────────────────────────────────────────────
+
+function updateInventoryUI({ fillRatio = 0, freeSlots = 0, usedSlots = 0, totalSlots = 36 }) {
+  const fillPct = Math.min(100, Math.max(0, fillRatio * 100));
+  
+  // Update bar
+  const bar = document.getElementById('inv-bar-fill');
+  const barText = document.getElementById('inv-bar-text');
+  if (bar) {
+    bar.style.width = fillPct + '%';
+    // Add warning classes
+    bar.classList.remove('high', 'critical');
+    if (fillRatio >= 0.9) bar.classList.add('critical');
+    else if (fillRatio >= 0.75) bar.classList.add('high');
+  }
+  if (barText) barText.textContent = `${usedSlots} / ${totalSlots} slots`;
+  
+  // Update stats
+  const freeEl = document.getElementById('inv-free');
+  const usedEl = document.getElementById('inv-used');
+  const ratioEl = document.getElementById('inv-ratio');
+  const badge = document.getElementById('inv-status-badge');
+  
+  if (freeEl) freeEl.textContent = freeSlots;
+  if (usedEl) usedEl.textContent = usedSlots;
+  if (ratioEl) ratioEl.textContent = (fillRatio * 100).toFixed(0) + '%';
+  if (badge) {
+    badge.textContent = 'ONLINE';
+    badge.classList.add('online');
+  }
+}
+
+function updateDiagScores({ threatScore = 0, survivalScore = 0, resourceScore = 0, status }) {
+  const setBar = (id, val, color) => {
+    const bar = document.getElementById('diag-' + id + '-bar');
+    const valEl = document.getElementById('diag-' + id + '-val');
+    if (bar) bar.style.width = Math.min(100, Math.max(0, val * 100)) + '%';
+    if (valEl) valEl.textContent = val.toFixed(2);
+  };
+  setBar('threat', threatScore);
+  setBar('survival', survivalScore);
+  setBar('resource', resourceScore);
+  
+  // Update tactical status (default to LIVE if scores received and no explicit status)
+  const statusEl = document.getElementById('diag-tactical-status');
+  if (statusEl) {
+    const effectiveStatus = status || 'LIVE';
+    statusEl.textContent = effectiveStatus;
+    statusEl.className = 'diag-status ' + (effectiveStatus === 'LIVE' ? 'ok' : 'offline');
+  }
+}
+
+function updateCombatDiag({ mode, targetDist, weapon, lastAction, status }) {
+  const set = (id, val) => {
+    const el = document.getElementById('diag-combat-' + id);
+    if (el) el.textContent = val || '—';
+  };
+  set('mode', mode);
+  set('dist', targetDist ? targetDist.toFixed(1) + 'm' : null);
+  set('weapon', weapon);
+  set('action', lastAction);
+  
+  const statusEl = document.getElementById('diag-combat-status');
+  if (statusEl) {
+    const effectiveStatus = status || (mode ? 'ACTIVE' : 'IDLE');
+    statusEl.textContent = effectiveStatus;
+    const statusClass = effectiveStatus.toLowerCase();
+    statusEl.className = 'diag-status ' + statusClass;
+  }
+}
+
+function updateWatchdogDiag({ lastCheck, lockHolder, pathStatus, status }) {
+  const set = (id, val) => {
+    const el = document.getElementById('diag-watchdog-' + id);
+    if (el) el.textContent = val || '—';
+  };
+  set('last', lastCheck);
+  set('lock', lockHolder);
+  set('path', pathStatus);
+  
+  const statusEl = document.getElementById('diag-watchdog-status');
+  if (statusEl) {
+    // JSON received means watchdog is working, show ACTIVE not OFFLINE
+    const effectiveStatus = status || 'ACTIVE';
+    statusEl.textContent = effectiveStatus;
+    const statusClass = effectiveStatus.toLowerCase();
+    statusEl.className = 'diag-status ' + statusClass;
+  }
+}
+
+function updateResourceDiag({ trees, ores, fallbacks, dangerStops, status, summary }) {
+  const set = (id, val) => {
+    const el = document.getElementById('diag-' + id);
+    if (el) el.textContent = val !== undefined ? val : '0';
+  };
+  set('trees', trees);
+  set('ores', ores);
+  set('fallbacks', fallbacks);
+  set('danger-stops', dangerStops);
+  
+  const statusEl = document.getElementById('diag-resource-status');
+  if (statusEl) {
+    // JSON received means resource system is working, show STANDBY not OFFLINE
+    const effectiveStatus = status || ((trees > 0 || ores > 0) ? 'GATHERING' : 'STANDBY');
+    statusEl.textContent = effectiveStatus;
+    const statusClass = effectiveStatus.toLowerCase();
+    statusEl.className = 'diag-status ' + statusClass;
+  }
+  
+  if (summary) {
+    const summaryEl = document.getElementById('diag-expedition-summary');
+    const contentEl = document.getElementById('diag-summary-content');
+    if (summaryEl) summaryEl.style.display = 'block';
+    if (contentEl) contentEl.textContent = summary;
+  }
+}
+
+let glitchLogCount = 0;
+function addGlitchLog({ message, timestamp, type }) {
+  const container = document.getElementById('diag-glitch-log');
+  const countEl = document.getElementById('diag-error-count');
+  if (!container) return;
+  
+  // Remove empty message
+  const empty = container.querySelector('.diag-empty');
+  if (empty) empty.remove();
+  
+  glitchLogCount++;
+  if (countEl) {
+    countEl.textContent = glitchLogCount;
+    countEl.classList.add('has-errors');
+  }
+  
+  const item = document.createElement('div');
+  item.className = 'diag-glitch-item';
+  const time = timestamp || new Date().toLocaleTimeString();
+  item.innerHTML = `<span class="timestamp">[${time}]</span> ${message}`;
+  
+  container.insertBefore(item, container.firstChild);
+  
+  // Keep only last 50 items
+  while (container.children.length > 50) {
+    container.removeChild(container.lastChild);
+  }
+}
+
+function updateOverrideDiag({ active, until, reason }) {
+  const section = document.getElementById('diag-override-section');
+  const timeEl = document.getElementById('diag-override-time');
+  const reasonEl = document.getElementById('diag-override-reason');
+  
+  if (section) section.style.display = active ? 'block' : 'none';
+  if (timeEl) timeEl.textContent = until || '—';
+  if (reasonEl) reasonEl.textContent = reason || 'Manual command issued';
+}
+
+// ────────────────────────────────────────────
+//  Config
+// ────────────────────────────────────────────
+let _config = null;
+
+async function loadConfigUI() {
+  const r = await launcher.loadConfig();
+  if (r.error) { errLog('CONFIG: ' + r.error); return; }
+  _config = r.data;
+
+  const mc  = _config.minecraft || {};
+  const bot = _config.bot || {};
+
+  setVal('cfg-license',      _config.license_key || '');
+  updateLicenseStatus(_config.license_key);
+  setVal('cfg-host',         mc.host     || '');
+  setVal('cfg-port',         mc.port     || 25565);
+  setVal('cfg-version',      mc.version  || '');
+  setVal('cfg-auth',         mc.auth     || 'offline');
+  setVal('cfg-username',     mc.username || '');
+  setVal('cfg-password',     mc.password || '');
+  setVal('cfg-allowed-user', bot.allowed_user || '');
+
+  // AI Config
+  const ai = _config.ai || {};
+  setVal('cfg-openai-key',     ai.openai_api_key || '');
+  setVal('cfg-assistant-id',   ai.assistant_id   || '');
+
+  // System Config
+  const system = _config.system || {};
+  document.getElementById('cfg-auto-restart').checked = system.auto_restart !== false;
+  document.getElementById('cfg-check-updates').checked = system.check_updates !== false;
+
+  const badge = document.getElementById('version-badge');
+  badge.textContent = 'v' + (_config.bot_version || _config.version || '?');
+  
+  // Update launcher version badge
+  const launcherBadge = document.getElementById('launcher-version');
+  if (launcherBadge) {
+    launcherBadge.textContent = 'v' + LAUNCHER_VERSION;
+  }
+}
+
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.value = val;
+}
+
+async function saveConfig() {
+  if (!_config) { errLog('CONFIG NOT LOADED'); return; }
+
+  _config.license_key = document.getElementById('cfg-license').value.trim();
+  updateLicenseStatus(_config.license_key);
+  _config.minecraft = _config.minecraft || {};
+  _config.minecraft.host     = document.getElementById('cfg-host').value.trim();
+  _config.minecraft.port     = parseInt(document.getElementById('cfg-port').value) || 25565;
+  _config.minecraft.version  = document.getElementById('cfg-version').value.trim();
+  _config.minecraft.auth     = document.getElementById('cfg-auth').value;
+  _config.minecraft.username = document.getElementById('cfg-username').value.trim();
+  _config.minecraft.password = document.getElementById('cfg-password').value;
+  _config.bot = _config.bot || {};
+  _config.bot.allowed_user   = document.getElementById('cfg-allowed-user').value.trim();
+
+  // AI Config
+  _config.ai = _config.ai || {};
+  _config.ai.openai_api_key = document.getElementById('cfg-openai-key').value.trim();
+  _config.ai.assistant_id   = document.getElementById('cfg-assistant-id').value.trim();
+
+  const r = await launcher.saveConfig(_config);
+  const status = document.getElementById('cfg-status');
+  if (r.ok) {
+    status.textContent = '[ OK ] Config saved.';
+    status.className   = 'cfg-status ok';
+  } else {
+    status.textContent = '[ ERR ] ' + r.error;
+    status.className   = 'cfg-status err';
+  }
+  setTimeout(() => { status.textContent = ''; }, 3000);
+}
+
+async function saveSystemConfig() {
+  if (!_config) { errLog('CONFIG NOT LOADED'); return; }
+
+  // System Config
+  _config.system = _config.system || {};
+  _config.system.auto_restart = document.getElementById('cfg-auto-restart').checked;
+  _config.system.check_updates = document.getElementById('cfg-check-updates').checked;
+
+  const r = await launcher.saveConfig(_config);
+  const status = document.getElementById('system-cfg-status');
+  if (r.ok) {
+    status.textContent = '[ OK ] System settings saved.';
+    status.className   = 'cfg-status ok';
+  } else {
+    status.textContent = '[ ERR ] ' + r.error;
+    status.className   = 'cfg-status err';
+  }
+  setTimeout(() => { status.textContent = ''; }, 3000);
+}
+
+// ────────────────────────────────────────────
+//  Update
+// ────────────────────────────────────────────
+let _updateInfo = null;
+
+async function checkUpdate() {
+  const box = document.getElementById('update-state');
+  box.className = 'update-state';
+  box.textContent = 'CHECKING...';
+
+  const r = await launcher.checkUpdate();
+  if (r.error) {
+    box.className = 'update-state error';
+    box.textContent = '[ ERR ] ' + r.error;
+    return;
+  }
+
+  _updateInfo = r;
+  const current = _config?.bot_version || _config?.version || '0.0.0';
+  const newer = semverGt(r.version, current);
+
+  if (newer) {
+    box.className = 'update-state new-version';
+    box.textContent = `NEW VERSION AVAILABLE: ${current} → ${r.version}`;
+    document.getElementById('btn-dl').style.display = '';
+    // Also show bot update row in the launcher update banner if it's visible
+    showBotUpdateInBanner(current, r.version);
+  } else {
+    box.className = 'update-state up-to-date';
+    box.textContent = `UP TO DATE — v${current}`;
+  }
+
+  document.getElementById('patch-notes').textContent = r.notes || '(no notes)';
+}
+
+async function doUpdate() {
+  if (!_updateInfo?.downloadUrl) { errLog('NO DOWNLOAD URL'); return; }
+
+  document.getElementById('btn-dl').style.display = 'none';
+  const wrap = document.getElementById('progress-wrap');
+  wrap.style.display = '';
+
+  launcher.onUpdateProgress(({ pct, downloaded, total }) => {
+    const safePct = isFinite(pct) ? Math.round(pct) : 0;
+    document.getElementById('progress-fill').style.width = safePct + '%';
+    const toMB = b => (b && isFinite(b)) ? (b / 1024 / 1024).toFixed(1) : '?';
+    const sizeStr = (downloaded || total)
+      ? `  ${toMB(downloaded)} / ${toMB(total)} MB`
+      : '';
+    document.getElementById('progress-label').textContent =
+      `DOWNLOADING... ${safePct}%${sizeStr}`;
+  });
+
+  const r = await launcher.downloadUpdate({ url: _updateInfo.downloadUrl, fileSize: _updateInfo.fileSize });
+
+  launcher.removeAllListeners('update-progress');
+  wrap.style.display = 'none';
+
+  if (r.ok) {
+    if (_config) {
+      const oldVer = _config.bot_version || '—';
+      _config.bot_version = _updateInfo.version;
+      await launcher.saveConfig(_config);
+      okLog('BOT UPDATED TO v' + _updateInfo.version);
+      showRestartModal(oldVer, _updateInfo.version);
+    } else {
+      okLog('BOT UPDATED TO v' + _updateInfo.version);
+      showRestartModal('—', _updateInfo.version);
+    }
+  } else {
+    errLog('UPDATE FAILED: ' + r.error);
+  }
+}
+
+// Simple semver gt: returns true if a > b
+function semverGt(a, b) {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const x = pa[i] || 0, y = pb[i] || 0;
+    if (x > y) return true;
+    if (x < y) return false;
+  }
+  return false;
+}
+
+// ────────────────────────────────────────────
+//  Launcher Update Check
+// ────────────────────────────────────────────
+const LAUNCHER_VERSION = '3.0.5';
+
+async function checkLauncherUpdate() {
+  try {
+    sysLog('[UPDATER] Checking for launcher updates...');
+    // Use native NSIS autoUpdater
+    const r = await launcher.nsisCheckUpdate();
+    if (r.portable) {
+      sysLog('[UPDATER] Portable mode — skipping');
+      return;
+    }
+    if (r.error) {
+      sysLog('[UPDATER] Check failed: ' + r.error);
+      return;
+    }
+    // autoUpdater fires 'auto-update-available' event if update found
+    // handled by onAutoUpdateAvailable listener below
+    if (!r.available) {
+      sysLog('[UPDATER] Up to date');
+    }
+  } catch (e) {
+    sysLog('[UPDATER] Check failed: ' + e.message);
+  }
+}
+
+function showLauncherUpdate(version, url) {
+  const banner = document.getElementById('launcher-update-banner');
+  const verEl = document.getElementById('launcher-new-version');
+  const linkEl = document.getElementById('launcher-update-link');
+  if (!banner) return;
+
+  verEl.textContent = 'v' + version;
+  linkEl.href = url || '#';
+  banner.style.display = 'flex';
+  // If bot update was already detected, show it in the banner too
+  if (_updateInfo && _config) {
+    const current = _config.bot_version || _config.version || '0.0.0';
+    if (semverGt(_updateInfo.version, current)) {
+      showBotUpdateInBanner(current, _updateInfo.version);
+    }
+  }
+}
+
+function showBotUpdateInBanner(oldVer, newVer) {
+  const row = document.getElementById('bot-update-row');
+  const verEl = document.getElementById('bot-new-version');
+  const banner = document.getElementById('launcher-update-banner');
+  if (!row) return;
+  if (verEl) verEl.textContent = oldVer + ' → v' + newVer;
+  row.style.display = 'flex';
+  // Show banner if not already visible
+  if (banner && banner.style.display === 'none') banner.style.display = 'flex';
+}
+
+function dismissLauncherUpdate() {
+  const banner = document.getElementById('launcher-update-banner');
+  if (banner) banner.style.display = 'none';
+}
+
+let _downloadProgressCleanup = null;
+
+// Cyberpunk loading messages
+const CYBER_MESSAGES = [
+  'INITIALIZING UPLOAD',
+  'CONNECTING TO SERVER',
+  'DOWNLOADING PACKAGES',
+  'VERIFYING INTEGRITY',
+  'OPTIMIZING DATA',
+  'FINALIZING UPDATE'
+];
+
+async function installLauncherUpdate() {
+  const normalContent = document.getElementById('update-normal-content');
+  const downloadState = document.getElementById('update-download-state');
+  const loadingText = document.getElementById('cyber-loading-text');
+  const progressBar = document.getElementById('cyber-progress-bar');
+  const percentText = document.getElementById('cyber-progress-percent');
+  const sizeText = document.getElementById('cyber-glitch-numbers');
+
+  if (!normalContent || !downloadState) return;
+
+  // Switch to cyberpunk download state
+  normalContent.style.display = 'none';
+  downloadState.style.display = 'flex';
+  sysLog('[UPDATER] DOWNLOADING NEW LAUNCHER...');
+
+  // Listen for native autoUpdater progress
+  launcher.onAutoUpdateProgress((percent) => {
+    const p = Math.round(percent);
+    if (progressBar) progressBar.style.width = p + '%';
+    if (percentText) percentText.textContent = p + '%';
+    const msgIndex = Math.min(Math.floor(p / 18), CYBER_MESSAGES.length - 1);
+    if (loadingText) loadingText.textContent = CYBER_MESSAGES[msgIndex];
+    if (sizeText) sizeText.textContent = `${(Math.random()*30+10).toFixed(2)} MB / ~45.00 MB`;
+  });
+
+  // When download is ready — install immediately
+  launcher.onAutoUpdateReady(() => {
+    if (loadingText) loadingText.textContent = 'INSTALLATION COMPLETE';
+    if (progressBar) progressBar.style.width = '100%';
+    if (percentText) percentText.textContent = '100%';
+    sysLog('[UPDATER] DOWNLOAD COMPLETE — INSTALLING...');
+    stopAllDots();
+    setTimeout(async () => {
+      await launcher.nsisInstallUpdate();
+    }, 1200);
+  });
+
+  try {
+    const r = await launcher.nsisDownloadUpdate();
+    if (r.error) {
+      errLog('[UPDATER] DOWNLOAD FAILED: ' + r.error);
+      normalContent.style.display = 'flex';
+      downloadState.style.display = 'none';
+    }
+  } catch (e) {
+    errLog('[UPDATER] CRITICAL ERROR: ' + e.message);
+    normalContent.style.display = 'flex';
+    downloadState.style.display = 'none';
+  }
+}
+
+// ────────────────────────────────────────────
+//  IPC subscriptions
+// ────────────────────────────────────────────
+
+// Native NSIS autoUpdater events
+launcher.onAutoUpdateAvailable((info) => {
+  sysLog(`[UPDATER] New launcher version: v${info.version}`);
+  showLauncherUpdate(info.version, null);
+});
+
+launcher.onBotLog(({ level, text }) => {
+  activateTickers();
+  tryParseScores(text);
+  appendLog(text, level === 'stderr' ? 'log-err' : 'log-raw');
+});
+
+let autoRestartTimer = null;
+let autoRestartAttempts = 0;
+const AUTO_RESTART_DELAY = 10;
+const AUTO_RESTART_MAX   = 3;
+
+launcher.onBotStatus(({ running, exitCode }) => {
+  setBotRunning(running);
+  
+  // Reset diagnostics when bot stops
+  if (!running) {
+    updateDiagScores({ threatScore: 0, survivalScore: 0, resourceScore: 0, status: 'OFFLINE' });
+    updateCombatDiag({ mode: '—', targetDist: null, weapon: '—', lastAction: '—', status: 'OFFLINE' });
+    updateWatchdogDiag({ lastCheck: '—', lockHolder: 'NONE', pathStatus: '—', status: 'OFFLINE' });
+    updateResourceDiag({ trees: 0, ores: 0, fallbacks: 0, dangerStops: 0, status: 'OFFLINE' });
+    // Reset inventory
+    const invBadge = document.getElementById('inv-status-badge');
+    if (invBadge) {
+      invBadge.textContent = 'OFFLINE';
+      invBadge.classList.remove('online');
+    }
+    
+    if (exitCode === 0) {
+      okLog('BOT STOPPED NORMALLY');
+      showToast('BOT STOPPED', 'warn', 3000);
+      autoRestartAttempts = 0;
+      if (autoRestartTimer) { clearInterval(autoRestartTimer); autoRestartTimer = null; }
+      stopAllDots(); // Stop dots when bot stops normally
+    } else {
+      // Check if auto-restart is enabled
+      const autoRestartEnabled = _config?.system?.auto_restart !== false;
+      if (!autoRestartEnabled) {
+        errLog(`BOT CRASHED (code: ${exitCode}) — AUTO-RESTART DISABLED`);
+        showToast('BOT CRASHED — AUTO-RESTART OFF', 'err', 5000);
+        return;
+      }
+      if (autoRestartAttempts >= AUTO_RESTART_MAX) {
+        errLog(`BOT CRASHED — AUTO-RESTART LIMIT REACHED (${AUTO_RESTART_MAX} attempts). Stop manually.`);
+        showToast(`RESTART LIMIT REACHED — MANUAL START REQUIRED`, 'err', 6000);
+        autoRestartAttempts = 0;
+        return;
+      }
+      autoRestartAttempts++;
+      errLog(`BOT CRASHED (code: ${exitCode}) — RESTART ${autoRestartAttempts}/${AUTO_RESTART_MAX} IN ${AUTO_RESTART_DELAY}s...`);
+      showToast(`BOT CRASHED — RESTART ${autoRestartAttempts}/${AUTO_RESTART_MAX} IN ${AUTO_RESTART_DELAY}s`, 'err', AUTO_RESTART_DELAY * 1000 + 500);
+      let countdown = AUTO_RESTART_DELAY;
+      if (autoRestartTimer) { clearInterval(autoRestartTimer); autoRestartTimer = null; }
+      autoRestartTimer = setInterval(async () => {
+        countdown--;
+        if (countdown <= 0) {
+          clearInterval(autoRestartTimer);
+          autoRestartTimer = null;
+          sysLog('AUTO-RESTART: LAUNCHING BOT...');
+          const r = await launcher.launchBot();
+          if (r.error) {
+            errLog('AUTO-RESTART FAILED: ' + r.error);
+            showToast('AUTO-RESTART FAILED', 'err', 4000);
+          } else {
+            showToast(`BOT AUTO-RESTARTED (${autoRestartAttempts}/${AUTO_RESTART_MAX})`, 'ok', 3000);
+          }
+        } else {
+          sysLog(`AUTO-RESTART IN ${countdown}s...`);
+        }
+      }, 1000);
+    }
+  }
+});
+
+// ── Hotkeys ──
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'F1' && !e.repeat) { e.preventDefault(); toggleBot(); }
+});
+
+// ────────────────────────────────────────────
+//  Cyberpunk Missing Bot Modal (2077 Style)
+// ────────────────────────────────────────────
+
+let _scrambleInterval = null;
+
+function showMissingBotModal() {
+  const modal = document.getElementById('missing-bot-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  
+  // Cyberpunk HACKING text scramble for WELCOME
+  const welcomeText = modal.querySelector('.cyber-mega-glitch');
+  if (welcomeText) {
+    // Clear any previous scramble
+    if (_scrambleInterval) {
+      clearInterval(_scrambleInterval);
+      _scrambleInterval = null;
+    }
+    
+    // Force reset and start fresh scramble
+    welcomeText.textContent = 'XXXXXXX';
+    welcomeText.style.opacity = '1';
+    welcomeText.style.textShadow = 'none';
+    
+    // Small delay then scramble
+    setTimeout(() => {
+      _scrambleInterval = scrambleText(welcomeText, 'WELCOME');
+    }, 100);
+  }
+  
+  sysLog('[SYSTEM] CRITICAL: AIBOT.EXE not detected');
+  sysLog('[SYSTEM] Neural link cannot be established');
+}
+
+// Cyberpunk HACKING text scramble - characters decode one by one
+function scrambleText(element, finalText) {
+  const chars = '!<>-_\\/[]{}—=+*^?#@$%&';
+  const state = finalText.split('').map(() => chars[Math.floor(Math.random() * chars.length)]);
+  let revealed = 0;
+  let cycles = 0;
+  const maxCycles = 40;
+  
+  // Show initial random text immediately
+  element.textContent = state.join('');
+  
+  const interval = setInterval(() => {
+    cycles++;
+    
+    // Scramble unrevealed characters
+    for (let i = revealed; i < finalText.length; i++) {
+      state[i] = chars[Math.floor(Math.random() * chars.length)];
+    }
+    
+    // Always update display to show scrambling
+    element.textContent = state.join('');
+    
+    // Reveal characters progressively (faster at start, slower at end)
+    const revealChance = 0.12 + (revealed / finalText.length) * 0.3;
+    if (Math.random() < revealChance && revealed < finalText.length) {
+      state[revealed] = finalText[revealed];
+      element.textContent = state.join(''); // Update immediately on reveal
+      
+      // Flash effect on reveal
+      element.style.textShadow = '0 0 15px #e0aa3a';
+      setTimeout(() => element.style.textShadow = 'none', 60);
+      
+      revealed++;
+    }
+    element.setAttribute('data-text', state.join(''));
+    
+    // Done or timeout
+    if (revealed >= finalText.length || cycles > maxCycles) {
+      clearInterval(interval);
+      element.textContent = finalText;
+      element.setAttribute('data-text', finalText);
+      
+      // Final "lock in" flash
+      element.style.textShadow = '0 0 30px #e0aa3a, 0 0 60px rgba(224,58,58,0.5)';
+      setTimeout(() => element.style.textShadow = 'none', 200);
+      
+      // Rare subtle flicker after settling
+      setInterval(() => {
+        if (Math.random() > 0.92) {
+          element.style.opacity = '0.8';
+          setTimeout(() => element.style.opacity = '1', 50);
+        }
+      }, 4000);
+    }
+  }, 60);
+  
+  return interval; // Return so it can be cleared
+}
+
+async function dismissMissingBot() {
+  const modal = document.getElementById('missing-bot-modal');
+  const content = modal?.querySelector('.cyber-modal-overlay');
+  
+  if (modal && content) {
+    // Simple smooth fade out
+    content.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    content.style.opacity = '0';
+    content.style.transform = 'scale(0.95)';
+    
+    setTimeout(() => {
+      modal.style.display = 'none';
+      content.style.opacity = '1';
+      content.style.transform = 'scale(1)';
+    }, 300);
+  }
+  
+  // Open launcher directory for manual install
+  sysLog('[SYSTEM] Opening launcher directory...');
+  try {
+    const result = await launcher.openLauncherDir();
+    if (result?.ok) {
+      sysLog('[OK] Folder opened: ' + result.path);
+    } else {
+      sysLog('[ERROR] Failed to open folder: ' + (result?.error || 'Unknown error'));
+      // Fallback: try to copy path to clipboard or show in log
+      sysLog('[INFO] Please manually open: ' + (result?.path || 'launcher directory'));
+    }
+  } catch (e) {
+    sysLog('[ERROR] openLauncherDir failed: ' + e.message);
+  }
+  
+  sysLog('[INFO] Place AIBot.exe in the opened folder and restart launcher');
+  showToast('MANUAL INSTALL', 'Place AIBot.exe in launcher folder and restart', 'warning');
+}
+
+async function downloadBot() {
+  sysLog('[SYSTEM] Initiating bot download sequence...');
+  
+  // Show progress UI
+  const progressEl = document.getElementById('bot-download-progress');
+  const actionsEl = document.getElementById('bot-modal-actions');
+  
+  if (progressEl) progressEl.style.display = 'block';
+  if (actionsEl) actionsEl.style.display = 'none';
+  
+  const progressBar = document.getElementById('bot-dl-bar');
+  const progressPercent = document.getElementById('bot-dl-percent');
+  const progressStatus = document.getElementById('bot-dl-status');
+  const progressGlitch = document.getElementById('bot-dl-glitch-text');
+  const progressSpeed = document.getElementById('bot-dl-speed');
+  const progressSize = document.getElementById('bot-dl-size');
+  
+  let progress = 0;
+  
+  // Listen for real download progress
+  launcher.onBotDownloadProgress?.((percent) => {
+    progress = percent;
+    if (progressBar) progressBar.style.width = percent.toFixed(1) + '%';
+    if (progressPercent) progressPercent.textContent = percent.toFixed(0) + '%';
+  });
+  
+  // Animate status messages
+  const messages = ['CONNECTING...', 'DOWNLOADING...', 'INSTALLING...', 'FINALIZING...'];
+  const glitchMsgs = ['INITIALIZING NEURAL LINK', 'DOWNLOADING PACKAGES', 'ASSEMBLING CORE', 'NEURAL LINK ESTABLISHED'];
+  let msgIdx = 0;
+  
+  const msgInterval = setInterval(() => {
+    if (progressStatus) progressStatus.textContent = messages[msgIdx] || 'COMPLETE';
+    if (progressGlitch) progressGlitch.textContent = glitchMsgs[msgIdx] || 'SYSTEM READY';
+    msgIdx = Math.min(Math.floor(progress / 25), 3);
+  }, 500);
+  
+  // Start real download
+  try {
+    // Track download for speed calculation
+    let startTime = Date.now();
+    const totalSize = 540; // Approximate MB (will be estimated)
+    
+    // Animate progress while waiting for real download
+    let lastProgress = 0;
+    const animInterval = setInterval(() => {
+      // Only animate if real progress hasn't updated recently
+      if (lastProgress === progress && progress < 95) {
+        progress += 0.5;
+        if (progressBar) progressBar.style.width = progress.toFixed(1) + '%';
+        if (progressPercent) progressPercent.textContent = progress.toFixed(0) + '%';
+      }
+      lastProgress = progress;
+      
+      // Calculate and display speed/size
+      const now = Date.now();
+      const elapsed = (now - startTime) / 1000;
+      const downloaded = (progress / 100) * totalSize;
+      const speed = elapsed > 0 ? (downloaded / elapsed) : 0;
+      
+      if (progressSpeed) progressSpeed.textContent = speed.toFixed(2) + ' MB/s';
+      if (progressSize) progressSize.textContent = downloaded.toFixed(2) + ' / ' + totalSize.toFixed(2) + ' MB';
+      
+      // Update messages based on progress
+      msgIdx = Math.min(Math.floor(progress / 25), 3);
+      if (progressStatus) progressStatus.textContent = messages[msgIdx] || 'COMPLETE';
+      if (progressGlitch) progressGlitch.textContent = glitchMsgs[msgIdx] || 'SYSTEM READY';
+    }, 200);
+    
+    // Listen for real download progress
+    launcher.onBotDownloadProgress?.((percent) => {
+      progress = percent;
+      lastProgress = percent;
+      
+      const now = Date.now();
+      const elapsed = (now - startTime) / 1000; // seconds
+      const downloaded = (percent / 100) * totalSize;
+      const speed = elapsed > 0 ? (downloaded / elapsed) : 0;
+      
+      if (progressBar) progressBar.style.width = percent.toFixed(1) + '%';
+      if (progressPercent) progressPercent.textContent = percent.toFixed(0) + '%';
+      if (progressSpeed) progressSpeed.textContent = speed.toFixed(2) + ' MB/s';
+      if (progressSize) progressSize.textContent = downloaded.toFixed(2) + ' / ' + totalSize.toFixed(2) + ' MB';
+    });
+    
+    const result = await launcher.downloadBot();
+    clearInterval(animInterval);
+    clearInterval(msgInterval);
+    
+    if (result?.ok) {
+      // Force 100%
+      if (progressBar) progressBar.style.width = '100%';
+      if (progressPercent) progressPercent.textContent = '100%';
+      
+      sysLog('[SYSTEM] AIBOT.EXE downloaded successfully');
+      sysLog('[SYSTEM] Bot version: ' + (result.version || 'unknown'));
+      
+      // Stop all animated dots when download completes
+      stopAllDots();
+      
+      // Update version badge in UI
+      const botVersionBadge = document.getElementById('version-badge');
+      if (botVersionBadge && result.version) {
+        botVersionBadge.textContent = 'v' + result.version;
+      }
+      
+      // Smooth close missing-bot modal then show restart modal
+      setTimeout(() => {
+        const modal = document.getElementById('missing-bot-modal');
+        const content = modal?.querySelector('.cyber-modal-overlay');
+        if (content) {
+          content.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+          content.style.opacity = '0';
+          content.style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            modal.style.display = 'none';
+            showRestartModal('—', result.version || '—');
+          }, 350);
+        } else {
+          showRestartModal('—', result.version || '—');
+        }
+      }, 800);
+    } else {
+      clearInterval(animInterval);
+      clearInterval(msgInterval);
+      sysLog('[ERROR] Bot download failed: ' + (result?.error || 'Unknown error'));
+      simulateDownload();
+    }
+  } catch (e) {
+    clearInterval(msgInterval);
+    sysLog('[ERROR] Download error: ' + e.message);
+    simulateDownload();
+  }
+}
+
+// Simulation fallback
+function simulateDownload() {
+  const progressBar = document.getElementById('bot-dl-bar');
+  const progressPercent = document.getElementById('bot-dl-percent');
+  const progressStatus = document.getElementById('bot-dl-status');
+  const progressGlitch = document.getElementById('bot-dl-glitch-text');
+  
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.random() * 2;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(interval);
+      
+      setTimeout(() => {
+        const modal = document.getElementById('missing-bot-modal');
+        const content = modal?.querySelector('.cyber-modal-overlay');
+        if (content) {
+          content.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+          content.style.opacity = '0';
+          content.style.transform = 'scale(0.95)';
+          
+          setTimeout(() => {
+            modal.style.display = 'none';
+            showToast('BOT INSTALLED', 'AIBot.exe ready. Launch when ready.', 'success');
+          }, 400);
+        }
+      }, 600);
+    }
+    
+    if (progressBar) progressBar.style.width = progress.toFixed(1) + '%';
+    if (progressPercent) progressPercent.textContent = progress.toFixed(0) + '%';
+    if (progressStatus) progressStatus.textContent = progress < 50 ? 'DOWNLOADING...' : 'INSTALLING...';
+    if (progressGlitch) progressGlitch.textContent = progress < 50 ? 'DOWNLOADING PACKAGES' : 'ASSEMBLING CORE';
+  }, 100);
+}
+
+// Check if bot exists on startup
+async function checkBotExists() {
+  try {
+    const result = await launcher.botExists();
+    if (!result?.exists) {
+      setTimeout(() => showMissingBotModal(), 1000);
+    } else {
+      // Update version badge if bot exists — use config version as source of truth
+      const botVersion = document.getElementById('version-badge');
+      if (botVersion) {
+        const ver = result.version || _config?.bot_version || _config?.version || null;
+        botVersion.textContent = ver ? 'v' + ver : 'v—';
+      }
+    }
+  } catch (e) {
+    // Show modal for testing if IPC fails
+    console.log('[DEBUG] Bot check failed, showing modal:', e.message);
+    setTimeout(() => showMissingBotModal(), 2000);
+  }
+}
+
+// ────────────────────────────────────────────
+//  Init
+// ────────────────────────────────────────────
+(async () => {
+  await loadConfigUI();
+  const s = await launcher.botStatus();
+  setBotRunning(s.running);
+  
+  // Initialize diagnostics to OFFLINE
+  updateDiagScores({ threatScore: 0, survivalScore: 0, resourceScore: 0, status: 'OFFLINE' });
+  updateCombatDiag({ mode: '—', targetDist: null, weapon: '—', lastAction: '—', status: 'OFFLINE' });
+  updateWatchdogDiag({ lastCheck: '—', lockHolder: 'NONE', pathStatus: '—', status: 'OFFLINE' });
+  updateResourceDiag({ trees: 0, ores: 0, fallbacks: 0, dangerStops: 0, status: 'OFFLINE' });
+  // Initialize inventory
+  const invBadge = document.getElementById('inv-status-badge');
+  if (invBadge) {
+    invBadge.textContent = 'OFFLINE';
+    invBadge.classList.remove('online');
+  }
+  
+  // Check if bot exists (show cyberpunk modal if missing)
+  checkBotExists();
+  // Check for launcher updates after 2s delay, then every 30 minutes
+  setTimeout(() => {
+    checkLauncherUpdate();
+    // Periodic check every 30 minutes
+    setInterval(checkLauncherUpdate, 30 * 60 * 1000);
+  }, 2000);
+})();
+
+// ────────────────────────────────────────────
+//  Restart Modal
+// ────────────────────────────────────────────
+function showRestartModal(oldVersion, newVersion) {
+  const modal = document.getElementById('restart-modal');
+  const oldEl = document.getElementById('restart-ver-old');
+  const newEl = document.getElementById('restart-ver-new');
+  if (!modal) return;
+
+  if (oldEl) oldEl.textContent = oldVersion !== '—' ? 'v' + oldVersion : 'v—';
+  if (newEl) newEl.textContent = newVersion !== '—' ? 'v' + newVersion : 'v—';
+
+  modal.style.display = 'flex';
+  // Trigger glitch on title
+  const title = document.getElementById('restart-title-text');
+  if (title) {
+    setTimeout(() => applyGlitchEffect(title), 200);
+    setInterval(() => applyGlitchEffect(title), 4000);
+  }
+}
+
+function doRelaunch() {
+  const btn = document.querySelector('.restart-btn');
+  if (btn) {
+    btn.disabled = true;
+    const span = btn.querySelector('.cyber-btn-text');
+    if (span) span.textContent = '[ RESTARTING... ]';
+  }
+  setTimeout(() => launcher.relaunch(), 400);
+}
