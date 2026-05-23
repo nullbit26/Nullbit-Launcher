@@ -251,6 +251,7 @@ input, textarea {
 }
 .tb-btn:hover { border-color: var(--accent); color: var(--accent); }
 .tb-close:hover { border-color: var(--red); color: var(--red); }
+.tb-max { font-size: 13px; }
 .tb-max:hover { border-color: #4a9eff; color: #4a9eff; }
 
 /* ── TITLEBAR STATUS ── */
@@ -2797,8 +2798,9 @@ input:checked + .toggle-slider::before {
   flex-wrap: nowrap;
 }
 .lst-state-row {
-  display: block;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  padding-left: 0;
 }
 .lst-item {
   display: flex;
