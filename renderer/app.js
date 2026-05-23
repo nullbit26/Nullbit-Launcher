@@ -315,6 +315,9 @@ function _doSwitchTab(el) {
         if (fld) _neuralSnapshot[elId] = fld.value;
       });
     }
+    // also snapshot active preset card
+    const activeCard = document.querySelector('.preset-card.active');
+    _neuralSnapshot.__activePreset = activeCard ? activeCard.id.replace('preset-', '') : null;
     _neuralDirty = false;
     _updateNeuralDirty();
   }
@@ -385,9 +388,27 @@ function _showNeuralGuard(pendingEl) {
     cleanup();
     // restore snapshot — undo all preset/field changes made during this session
     Object.entries(snapshot).forEach(([elId, val]) => {
+      if (elId === '__activePreset') return;
       const fld = document.getElementById(elId);
       if (fld) fld.value = val;
     });
+    // restore active preset card highlight
+    document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+    if (snapshot.__activePreset) {
+      const card = document.getElementById('preset-' + snapshot.__activePreset);
+      if (card) card.classList.add('active');
+    }
+    // also roll back _config.neural in memory so stale values aren't saved later
+    if (_config && typeof NEURAL_ID_MAP !== 'undefined') {
+      _config.neural = _config.neural || {};
+      Object.entries(NEURAL_ID_MAP).forEach(([elId, key]) => {
+        const val = snapshot[elId];
+        if (val !== undefined) {
+          const v = parseFloat(val);
+          _config.neural[key] = Number.isFinite(v) ? v : val;
+        }
+      });
+    }
     _syncTuningFromAdvanced();
     _neuralDirty = false;
     _updateNeuralDirty();
@@ -738,6 +759,7 @@ function setBotRunning(running, force = false) {
 
   triggerGlitchFlash(running ? 'launch' : 'stop');
   _triggerNeuralIconState(running);
+  _triggerLogoState(running);
 
   if (running) {
     if (btn) {
@@ -792,6 +814,27 @@ function _triggerNeuralIconState(running) {
   } else {
     icon.classList.add('neural-icon-offline');
     setTimeout(() => icon.classList.remove('neural-icon-offline'), 1200);
+  }
+}
+
+function _triggerLogoState(running) {
+  const logo = document.querySelector('.sidebar-logo');
+  if (!logo) return;
+  logo.classList.remove('logo-boot', 'logo-online', 'logo-offline', 'logo-active');
+  void logo.offsetWidth;
+  if (running) {
+    logo.classList.add('logo-boot');
+    setTimeout(() => {
+      logo.classList.remove('logo-boot');
+      logo.classList.add('logo-online');
+      setTimeout(() => {
+        logo.classList.remove('logo-online');
+        logo.classList.add('logo-active');
+      }, 400);
+    }, 900);
+  } else {
+    logo.classList.add('logo-offline');
+    setTimeout(() => logo.classList.remove('logo-offline'), 1400);
   }
 }
 
@@ -1129,6 +1172,7 @@ function addGlitchLog({ message, timestamp, type }) {
   glitchLogCount++;
   if (countEl) {
     countEl.textContent = glitchLogCount;
+    countEl.dataset.count = glitchLogCount;
     countEl.classList.add('has-errors');
   }
   
@@ -1385,32 +1429,32 @@ const TUNING_MAP = {
     })
   },
   survival: {
-    // 1=reckless, 10=cautious
+    // 1=cautious(safe), 10=reckless(risky)
     params: (v) => ({
-      combatFleeCriticalHp:            _lerp(v, 1, 10, 3, 12),
-      combatFleeSafeHp:                _lerp(v, 1, 10, 7, 17),
-      combatFleeNavDistance:           _lerp(v, 1, 10, 6, 16),
-      combatFleeImmediateDangerBlocks: _lerp(v, 1, 10, 14, 7),
-      combatFleeRetreatPressureWeight: _lerp(v, 1, 10, 0.3, 1.2),
+      combatFleeCriticalHp:            _lerp(v, 1, 10, 12, 3),
+      combatFleeSafeHp:                _lerp(v, 1, 10, 17, 7),
+      combatFleeNavDistance:           _lerp(v, 1, 10, 16, 6),
+      combatFleeImmediateDangerBlocks: _lerp(v, 1, 10, 7, 14),
+      combatFleeRetreatPressureWeight: _lerp(v, 1, 10, 1.2, 0.3),
     })
   },
   gather: {
-    // 1=bold, 10=careful
+    // 1=careful(safe), 10=bold(risky)
     params: (v) => ({
-      gatherGuardSurvivalThreatCount:  Math.round(_lerp(v, 1, 10, 5, 2)),
-      gatherGuardSurvivalLowHp:        Math.round(_lerp(v, 1, 10, 4, 12)),
-      gatherGuardFightMaxThreats:      Math.round(_lerp(v, 1, 10, 4, 1)),
-      gatherGuardFightMinHpRatio:      _lerp(v, 1, 10, 0.35, 0.85),
-      gatherGuardFightMaxEngageDist:   Math.round(_lerp(v, 1, 10, 18, 7)),
+      gatherGuardSurvivalThreatCount:  Math.round(_lerp(v, 1, 10, 2, 5)),
+      gatherGuardSurvivalLowHp:        Math.round(_lerp(v, 1, 10, 12, 4)),
+      gatherGuardFightMaxThreats:      Math.round(_lerp(v, 1, 10, 1, 4)),
+      gatherGuardFightMinHpRatio:      _lerp(v, 1, 10, 0.85, 0.35),
+      gatherGuardFightMaxEngageDist:   Math.round(_lerp(v, 1, 10, 7, 18)),
     })
   },
   mobility: {
-    // 1=fast, 10=thorough
+    // 1=thorough(safe), 10=fast(risky)
     params: (v) => ({
-      pathThinkTimeoutMs: Math.round(_lerp(v, 1, 10, 8000, 40000)),
-      stuckCheckTicks:    Math.round(_lerp(v, 1, 10, 16, 6)),
-      followDistance:     Math.round(_lerp(v, 1, 10, 2, 5)),
-      guardMobDistance:   Math.round(_lerp(v, 1, 10, 6, 16)),
+      pathThinkTimeoutMs: Math.round(_lerp(v, 1, 10, 20000, 8000)),
+      stuckCheckTicks:    Math.round(_lerp(v, 1, 10, 8, 18)),
+      followDistance:     Math.round(_lerp(v, 1, 10, 5, 2)),
+      guardMobDistance:   Math.round(_lerp(v, 1, 10, 16, 6)),
     })
   },
 };
@@ -1429,10 +1473,66 @@ function _updateTuningFill(id, value) {
   fill.style.width = pct + '%';
 }
 
+function _tuningHeatUpdate(id, v) {
+  const fill   = document.getElementById('tuning-fill-' + id);
+  const valEl  = document.getElementById('tuning-val-' + id);
+  const row    = document.getElementById('tuning-' + id)?.closest('.tuning-row');
+  if (!fill || !valEl || !row) return;
+
+  // Heat color: 1-3 cyan, 4-6 yellow, 7-9 orange, 10 red
+  let fillColor, valColor, glowColor;
+  if (v <= 3) {
+    const t = (v - 1) / 2;
+    fillColor  = `linear-gradient(90deg, rgba(0,180,255,0.3), rgba(${lerpc(0,255,t)},${lerpc(200,200,t)},${lerpc(255,0,t)},1))`;
+    valColor   = `rgb(${lerpc(0,245,t)},${lerpc(200,197,t)},${lerpc(255,24,t)})`;
+    glowColor  = `rgba(0,180,255,0.7)`;
+  } else if (v <= 6) {
+    const t = (v - 4) / 3;
+    fillColor  = `linear-gradient(90deg, rgba(255,200,0,0.3), rgba(245,197,24,1))`;
+    valColor   = `rgb(245,197,24)`;
+    glowColor  = `rgba(245,197,24,0.6)`;
+  } else if (v <= 9) {
+    const t = (v - 7) / 2;
+    fillColor  = `linear-gradient(90deg, rgba(255,150,0,0.3), rgba(${lerpc(255,224,t)},${lerpc(150,58,t)},0,1))`;
+    valColor   = `rgb(${lerpc(255,224,t)},${lerpc(150,58,t)},0)`;
+    glowColor  = `rgba(255,100,0,0.7)`;
+  } else {
+    fillColor  = `linear-gradient(90deg, rgba(224,58,58,0.3), rgba(224,58,58,1))`;
+    valColor   = `rgb(224,58,58)`;
+    glowColor  = `rgba(224,58,58,0.9)`;
+  }
+
+  fill.style.background  = fillColor;
+  valEl.style.color      = valColor;
+  valEl.style.textShadow = `0 0 8px ${glowColor}`;
+
+  // Overdrive / Minimum label
+  row.classList.remove('tuning-flash-max', 'tuning-flash-min');
+  let badge = row.querySelector('.tuning-extreme-badge');
+  if (v === 10 || v === 1) {
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'tuning-extreme-badge';
+      row.querySelector('.tuning-header').appendChild(badge);
+    }
+    badge.textContent = v === 10 ? '[ OVERDRIVE ]' : '[ MINIMUM ]';
+    badge.className = 'tuning-extreme-badge ' + (v === 10 ? 'badge-max' : 'badge-min');
+    void badge.offsetWidth;
+    badge.classList.add('badge-active');
+    clearTimeout(badge._hide);
+    badge._hide = setTimeout(() => badge.classList.remove('badge-active'), 1800);
+  } else if (badge) {
+    badge.classList.remove('badge-active');
+  }
+}
+
+function lerpc(a, b, t) { return Math.round(a + (b - a) * Math.max(0, Math.min(1, t))); }
+
 function onTuningChange(id, value) {
   const v = Number(value);
   document.getElementById('tuning-val-' + id).textContent = v;
   _updateTuningFill(id, v);
+  _tuningHeatUpdate(id, v);
   const map = TUNING_MAP[id];
   if (!map) return;
   const params = map.params(v);
@@ -1456,6 +1556,7 @@ function _setTuningSlider(id, v) {
   if (el) el.value = clamped;
   if (lbl) lbl.textContent = clamped;
   _updateTuningFill(id, clamped);
+  _tuningHeatUpdate(id, clamped);
 }
 
 function _syncTuningFromAdvanced() {
@@ -1463,13 +1564,13 @@ function _syncTuningFromAdvanced() {
   if (aggr) _setTuningSlider('aggression', _lerp(Number(aggr.value), 850, 450, 1, 10));
 
   const surv = document.getElementById('n-combatFleeCriticalHp');
-  if (surv) _setTuningSlider('survival', _lerp(Number(surv.value), 3, 12, 1, 10));
+  if (surv) _setTuningSlider('survival', _lerp(Number(surv.value), 12, 3, 1, 10));
 
   const gath = document.getElementById('n-gatherGuardSurvivalLowHp');
-  if (gath) _setTuningSlider('gather', _lerp(Number(gath.value), 4, 12, 1, 10));
+  if (gath) _setTuningSlider('gather', _lerp(Number(gath.value), 12, 4, 1, 10));
 
   const mob = document.getElementById('n-pathThinkTimeoutMs');
-  if (mob) _setTuningSlider('mobility', _lerp(Number(mob.value), 8000, 40000, 1, 10));
+  if (mob) _setTuningSlider('mobility', _lerp(Number(mob.value), 20000, 8000, 1, 10));
 }
 
 // ────────────────────────────────────────────
@@ -1676,7 +1777,7 @@ function semverGt(a, b) {
 // ────────────────────────────────────────────
 //  Launcher Update Check
 // ────────────────────────────────────────────
-const LAUNCHER_VERSION = '3.0.19';
+const LAUNCHER_VERSION = '3.0.20';
 
 async function checkLauncherUpdate() {
   try {
@@ -1910,7 +2011,8 @@ let _launcherUpdateReady = false; // true once update-downloaded fires
 launcher.onAutoUpdateAvailable((info) => {
   sysLog(`[UPDATER] New launcher version: v${info.version}`);
   _launcherUpdateReady = false;
-  showLauncherUpdate(info.version, null);
+  const releaseUrl = `https://github.com/nullbit26/Nullbit-Launcher/releases/tag/v${info.version}`;
+  showLauncherUpdate(info.version, releaseUrl);
 });
 
 launcher.onAutoUpdateReady((info) => {
@@ -2349,7 +2451,11 @@ async function checkBotExists() {
   await loadConfigUI();
   initNeuralDirtyTracking();
   _syncTuningFromAdvanced();
-  ['aggression','survival','gather','mobility'].forEach(id => _updateTuningFill(id, Number(document.getElementById('tuning-' + id)?.value || 5)));
+  ['aggression','survival','gather','mobility'].forEach(id => {
+    const v = Number(document.getElementById('tuning-' + id)?.value || 5);
+    _updateTuningFill(id, v);
+    _tuningHeatUpdate(id, v);
+  });
   const s = await launcher.botStatus();
   setBotRunning(s.running, true);
   _syncCoreAccordion(document.querySelector('.nav-item.active')?.dataset?.tab || '');

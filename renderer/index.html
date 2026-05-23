@@ -523,12 +523,12 @@
               <span class="tuning-val" id="tuning-val-survival">5</span>
             </div>
             <div class="tuning-track-wrap">
-              <span class="tuning-label-l">RECKLESS</span>
+              <span class="tuning-label-l">CAUTIOUS</span>
               <div class="tuning-track">
                 <input class="tuning-range" type="range" id="tuning-survival" min="1" max="10" step="1" value="5" oninput="onTuningChange('survival', this.value)">
                 <div class="tuning-fill" id="tuning-fill-survival"></div>
               </div>
-              <span class="tuning-label-r">CAUTIOUS</span>
+              <span class="tuning-label-r">RECKLESS</span>
             </div>
           </div>
 
@@ -539,12 +539,12 @@
               <span class="tuning-val" id="tuning-val-gather">5</span>
             </div>
             <div class="tuning-track-wrap">
-              <span class="tuning-label-l">BOLD</span>
+              <span class="tuning-label-l">CAREFUL</span>
               <div class="tuning-track">
                 <input class="tuning-range" type="range" id="tuning-gather" min="1" max="10" step="1" value="5" oninput="onTuningChange('gather', this.value)">
                 <div class="tuning-fill" id="tuning-fill-gather"></div>
               </div>
-              <span class="tuning-label-r">CAREFUL</span>
+              <span class="tuning-label-r">BOLD</span>
             </div>
           </div>
 
@@ -555,12 +555,12 @@
               <span class="tuning-val" id="tuning-val-mobility">5</span>
             </div>
             <div class="tuning-track-wrap">
-              <span class="tuning-label-l">FAST</span>
+              <span class="tuning-label-l">THOROUGH</span>
               <div class="tuning-track">
                 <input class="tuning-range" type="range" id="tuning-mobility" min="1" max="10" step="1" value="5" oninput="onTuningChange('mobility', this.value)">
                 <div class="tuning-fill" id="tuning-fill-mobility"></div>
               </div>
-              <span class="tuning-label-r">THOROUGH</span>
+              <span class="tuning-label-r">FAST</span>
             </div>
           </div>
 
@@ -574,37 +574,37 @@
       <div class="neural-group">
         <div class="neural-group-title">COMBAT FLEE</div>
         <div class="neural-row">
-          <label class="neural-label">CRITICAL HP<span class="neural-hint">бежим если HP ≤</span></label>
+          <label class="neural-label">CRITICAL HP<span class="neural-hint">flee if HP ≤</span></label>
           <input class="neural-input" type="number" id="n-combatFleeCriticalHp" min="1" max="20" step="1">
           <span class="neural-default">default: 6</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">SAFE HP<span class="neural-hint">возврат в бой если HP ≥</span></label>
+          <label class="neural-label">SAFE HP<span class="neural-hint">re-engage if HP ≥</span></label>
           <input class="neural-input" type="number" id="n-combatFleeSafeHp" min="1" max="20" step="1">
           <span class="neural-default">default: 12</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">RETREAT THRESHOLD<span class="neural-hint">порог риска для бегства</span></label>
+          <label class="neural-label">RETREAT THRESHOLD<span class="neural-hint">risk score to trigger flee</span></label>
           <input class="neural-input" type="number" id="n-combatFleeRetreatScoreThreshold" min="0.4" max="4" step="0.1">
           <span class="neural-default">default: 2.5</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">FLEE DISTANCE<span class="neural-hint">блоков отступить</span></label>
+          <label class="neural-label">FLEE DISTANCE<span class="neural-hint">blocks to retreat</span></label>
           <input class="neural-input" type="number" id="n-combatFleeNavDistance" min="5" max="40" step="1">
           <span class="neural-default">default: 10</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">DANGER RADIUS<span class="neural-hint">дистанция немедленной угрозы</span></label>
+          <label class="neural-label">DANGER RADIUS<span class="neural-hint">immediate threat range (blocks)</span></label>
           <input class="neural-input" type="number" id="n-combatFleeImmediateDangerBlocks" min="4" max="20" step="1">
           <span class="neural-default">default: 11</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">HP WEIGHT<span class="neural-hint">вес HP в retreat score</span></label>
+          <label class="neural-label">HP WEIGHT<span class="neural-hint">HP factor in retreat score</span></label>
           <input class="neural-input" type="number" id="n-combatFleeRetreatHpWeight" min="0.2" max="3" step="0.1">
           <span class="neural-default">default: 1.0</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">PRESSURE WEIGHT<span class="neural-hint">вес давления толпы</span></label>
+          <label class="neural-label">PRESSURE WEIGHT<span class="neural-hint">mob pressure factor</span></label>
           <input class="neural-input" type="number" id="n-combatFleeRetreatPressureWeight" min="0.2" max="3" step="0.1">
           <span class="neural-default">default: 0.58</span>
         </div>
@@ -614,22 +614,22 @@
       <div class="neural-group">
         <div class="neural-group-title">PVP</div>
         <div class="neural-row">
-          <label class="neural-label">ATTACK COOLDOWN<span class="neural-hint">мс между атаками</span></label>
+          <label class="neural-label">ATTACK COOLDOWN<span class="neural-hint">ms between attacks</span></label>
           <input class="neural-input" type="number" id="n-pvpAttackCooldown" min="400" max="1000" step="50">
           <span class="neural-default">default: 600</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">IDEAL DISTANCE<span class="neural-hint">дистанция меча (блоки)</span></label>
+          <label class="neural-label">IDEAL DISTANCE<span class="neural-hint">sword range (blocks)</span></label>
           <input class="neural-input" type="number" id="n-pvpIdealDistance" min="2" max="4" step="0.1">
           <span class="neural-default">default: 2.9</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">KITE HP<span class="neural-hint">HP для перехода в кайт</span></label>
+          <label class="neural-label">KITE HP<span class="neural-hint">HP threshold to start kiting</span></label>
           <input class="neural-input" type="number" id="n-pvpKiteHpThreshold" min="2" max="14" step="1">
           <span class="neural-default">default: 8</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">ENGAGE SAFE HP<span class="neural-hint">HP для агрессивной атаки</span></label>
+          <label class="neural-label">ENGAGE SAFE HP<span class="neural-hint">min HP to engage aggressively</span></label>
           <input class="neural-input" type="number" id="n-pvpEngageSafeHp" min="10" max="20" step="1">
           <span class="neural-default">default: 15</span>
         </div>
@@ -639,22 +639,22 @@
       <div class="neural-group">
         <div class="neural-group-title">NAVIGATION</div>
         <div class="neural-row">
-          <label class="neural-label">PATH THINK TIMEOUT<span class="neural-hint">мс на расчёт A*</span></label>
+          <label class="neural-label">PATH THINK TIMEOUT<span class="neural-hint">ms for A* pathfinding</span></label>
           <input class="neural-input" type="number" id="n-pathThinkTimeoutMs" min="5000" max="60000" step="1000">
           <span class="neural-default">default: 24000</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">STUCK CHECK TICKS<span class="neural-hint">тиков до detect застревания</span></label>
+          <label class="neural-label">STUCK CHECK TICKS<span class="neural-hint">ticks before stuck detected</span></label>
           <input class="neural-input" type="number" id="n-stuckCheckTicks" min="5" max="30" step="1">
           <span class="neural-default">default: 11</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">FOLLOW DISTANCE<span class="neural-hint">дистанция следования (блоки)</span></label>
+          <label class="neural-label">FOLLOW DISTANCE<span class="neural-hint">follow range (blocks)</span></label>
           <input class="neural-input" type="number" id="n-followDistance" min="1" max="10" step="1">
           <span class="neural-default">default: 3</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">GUARD MOB DISTANCE<span class="neural-hint">радиус охраны от мобов</span></label>
+          <label class="neural-label">GUARD MOB DISTANCE<span class="neural-hint">mob guard radius (blocks)</span></label>
           <input class="neural-input" type="number" id="n-guardMobDistance" min="4" max="20" step="1">
           <span class="neural-default">default: 10</span>
         </div>
@@ -664,22 +664,22 @@
       <div class="neural-group">
         <div class="neural-group-title">MINING</div>
         <div class="neural-row">
-          <label class="neural-label">BRANCH LENGTH<span class="neural-hint">длина тоннеля (блоки)</span></label>
+          <label class="neural-label">BRANCH LENGTH<span class="neural-hint">tunnel length (blocks)</span></label>
           <input class="neural-input" type="number" id="n-branchLength" min="8" max="64" step="4">
           <span class="neural-default">default: 32</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">MAX BRANCHES<span class="neural-hint">веток за сессию</span></label>
+          <label class="neural-label">MAX BRANCHES<span class="neural-hint">branches per session</span></label>
           <input class="neural-input" type="number" id="n-maxBranches" min="1" max="20" step="1">
           <span class="neural-default">default: 8</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">ORE SCAN RADIUS<span class="neural-hint">радиус поиска руды (блоки)</span></label>
+          <label class="neural-label">ORE SCAN RADIUS<span class="neural-hint">ore search radius (blocks)</span></label>
           <input class="neural-input" type="number" id="n-oreScanRadius" min="2" max="12" step="1">
           <span class="neural-default">default: 6</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">TORCH INTERVAL<span class="neural-hint">шагов между факелами</span></label>
+          <label class="neural-label">TORCH INTERVAL<span class="neural-hint">steps between torches</span></label>
           <input class="neural-input" type="number" id="n-torchInterval" min="4" max="20" step="1">
           <span class="neural-default">default: 8</span>
         </div>
@@ -689,27 +689,27 @@
       <div class="neural-group">
         <div class="neural-group-title">SURVIVAL / GATHER</div>
         <div class="neural-row">
-          <label class="neural-label">SURVIVAL THREATS<span class="neural-hint">угроз для немедленного FLEE при добыче</span></label>
+          <label class="neural-label">SURVIVAL THREATS<span class="neural-hint">threats to trigger flee while gathering</span></label>
           <input class="neural-input" type="number" id="n-gatherGuardSurvivalThreatCount" min="2" max="8" step="1">
           <span class="neural-default">default: 3</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">SURVIVAL LOW HP<span class="neural-hint">HP для немедленного FLEE при добыче</span></label>
+          <label class="neural-label">SURVIVAL LOW HP<span class="neural-hint">HP to trigger flee while gathering</span></label>
           <input class="neural-input" type="number" id="n-gatherGuardSurvivalLowHp" min="2" max="16" step="1">
           <span class="neural-default">default: 8</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">FIGHT MAX THREATS<span class="neural-hint">макс. угроз чтобы вступить в бой</span></label>
+          <label class="neural-label">FIGHT MAX THREATS<span class="neural-hint">max threats to engage combat</span></label>
           <input class="neural-input" type="number" id="n-gatherGuardFightMaxThreats" min="1" max="5" step="1">
           <span class="neural-default">default: 2</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">FIGHT MIN HP<span class="neural-hint">мин. HP ratio для боя (0.3–1.0)</span></label>
+          <label class="neural-label">FIGHT MIN HP<span class="neural-hint">min HP ratio to fight (0.3–1.0)</span></label>
           <input class="neural-input" type="number" id="n-gatherGuardFightMinHpRatio" min="0.3" max="1" step="0.05">
           <span class="neural-default">default: 0.6</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">FIGHT ENGAGE DIST<span class="neural-hint">макс. дистанция для атаки при добыче</span></label>
+          <label class="neural-label">FIGHT ENGAGE DIST<span class="neural-hint">max engage distance while gathering</span></label>
           <input class="neural-input" type="number" id="n-gatherGuardFightMaxEngageDist" min="6" max="24" step="1">
           <span class="neural-default">default: 12</span>
         </div>
@@ -719,17 +719,17 @@
       <div class="neural-group">
         <div class="neural-group-title">AI</div>
         <div class="neural-row">
-          <label class="neural-label">AI COOLDOWN<span class="neural-hint">мс между запросами ИИ</span></label>
+          <label class="neural-label">AI COOLDOWN<span class="neural-hint">ms between AI requests</span></label>
           <input class="neural-input" type="number" id="n-aiCooldownMs" min="1000" max="15000" step="500">
           <span class="neural-default">default: 4000</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">AI TIMEOUT<span class="neural-hint">мс таймаут ответа ИИ</span></label>
+          <label class="neural-label">AI TIMEOUT<span class="neural-hint">ms AI response timeout</span></label>
           <input class="neural-input" type="number" id="n-aiTimeoutMs" min="3000" max="30000" step="1000">
           <span class="neural-default">default: 12000</span>
         </div>
         <div class="neural-row">
-          <label class="neural-label">THREAD RESET<span class="neural-hint">сброс треда после N ответов (0=нет)</span></label>
+          <label class="neural-label">THREAD RESET<span class="neural-hint">reset thread after N replies (0=off)</span></label>
           <input class="neural-input" type="number" id="n-openAiThreadResetAfterMessages" min="0" max="100" step="5">
           <span class="neural-default">default: 0</span>
         </div>
@@ -924,7 +924,7 @@
         <div class="diag-header">
           <span class="diag-icon">⚠</span>
           <span>CRITICAL EVENTS</span>
-          <span class="diag-count" id="diag-error-count">0</span>
+          <span class="diag-count" id="diag-error-count" data-count="0">0</span>
         </div>
         <div class="diag-glitch-log" id="diag-glitch-log">
           <div class="diag-empty">No critical events detected</div>
