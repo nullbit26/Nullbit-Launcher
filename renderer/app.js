@@ -1092,17 +1092,18 @@ function drawChart() {
 function updateInventoryUI({ fillRatio = 0, freeSlots = 0, usedSlots = 0, totalSlots = 36 }) {
   const fillPct = Math.min(100, Math.max(0, fillRatio * 100));
   
-  // Update bar
-  const bar = document.getElementById('inv-bar-fill');
+  // Update ASCII segments (12 blocks)
+  const segEl  = document.getElementById('inv-segments');
   const barText = document.getElementById('inv-bar-text');
-  if (bar) {
-    bar.style.width = fillPct + '%';
-    // Add warning classes
-    bar.classList.remove('high', 'critical');
-    if (fillRatio >= 0.9) bar.classList.add('critical');
-    else if (fillRatio >= 0.75) bar.classList.add('high');
+  if (segEl) {
+    const TOTAL_SEGS = 12;
+    const filled = Math.round(fillRatio * TOTAL_SEGS);
+    segEl.textContent = '▰'.repeat(filled) + '▱'.repeat(TOTAL_SEGS - filled);
+    segEl.classList.remove('high', 'critical');
+    if (fillRatio >= 0.9) segEl.classList.add('critical');
+    else if (fillRatio >= 0.75) segEl.classList.add('high');
   }
-  if (barText) barText.textContent = `${usedSlots} / ${totalSlots} slots`;
+  if (barText) barText.textContent = `${usedSlots}/${totalSlots}`;
   
   // Update stats
   const freeEl = document.getElementById('inv-free');

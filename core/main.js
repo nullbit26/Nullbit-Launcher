@@ -64,10 +64,10 @@ function createSplash() {
 // ────────────────────────────────────────────
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1100,
-    height: 720,
-    minWidth: 900,
-    minHeight: 620,
+    width: 1240,
+    height: 800,
+    minWidth: 960,
+    minHeight: 660,
     frame: false,
     transparent: false,
     backgroundColor: '#1c1c1e',
@@ -246,6 +246,11 @@ app.on('before-quit', () => { isQuitting = true; });
 //  Window controls
 // ────────────────────────────────────────────
 ipcMain.on('window-minimize', () => mainWindow?.minimize());
+ipcMain.on('window-maximize', () => {
+  if (!mainWindow) return;
+  if (mainWindow.isMaximized()) mainWindow.unmaximize();
+  else mainWindow.maximize();
+});
 ipcMain.on('window-close', () => {
   isQuitting = true;
   if (botProcess && !botProcess.killed) botProcess.kill();
