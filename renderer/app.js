@@ -305,6 +305,19 @@ function _doSwitchTab(el) {
     target.classList.add('active', 'tab-enter');
     requestAnimationFrame(() => requestAnimationFrame(() => target.classList.remove('tab-enter')));
   }
+  // Take snapshot of Neural fields when ENTERING Neural tab
+  if (el.dataset.tab === 'neural') {
+    _neuralSnapshot = {};
+    // NEURAL_ID_MAP may not exist yet if called early; guard with typeof
+    if (typeof NEURAL_ID_MAP !== 'undefined') {
+      Object.keys(NEURAL_ID_MAP).forEach(elId => {
+        const fld = document.getElementById(elId);
+        if (fld) _neuralSnapshot[elId] = fld.value;
+      });
+    }
+    _neuralDirty = false;
+    _updateNeuralDirty();
+  }
   // Keep core group open if config or neural is active
   _syncCoreAccordion(el.dataset.tab);
 }
@@ -343,16 +356,20 @@ function switchTab(el) {
 
 function _showNeuralGuard(pendingEl) {
   const overlay = document.getElementById('neural-guard-overlay');
+  const saveBtn = document.getElementById('ngm-save-btn');
+  const discardBtn = document.getElementById('ngm-discard-btn');
   const ver = document.getElementById('ngm-version');
+  if (!overlay || !saveBtn || !discardBtn) return;
   if (ver && _config) ver.textContent = _config.bot_version || _config.version || '?';
-  if (!overlay) return;
 
-  // snapshot current field values for discard
-  const snapshot = {};
-  Object.keys(NEURAL_ID_MAP).forEach(elId => {
-    const el = document.getElementById(elId);
-    if (el) snapshot[elId] = el.value;
-  });
+  // Use snapshot taken at Neural tab entry (before any preset changes)
+  const snapshot = { ..._neuralSnapshot };
+
+  // Remove ALL previous listeners by replacing nodes with clones
+  const newSaveBtn = saveBtn.cloneNode(true);
+  const newDiscardBtn = discardBtn.cloneNode(true);
+  saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+  discardBtn.parentNode.replaceChild(newDiscardBtn, discardBtn);
 
   // re-trigger animation
   overlay.style.display = 'none';
@@ -366,10 +383,10 @@ function _showNeuralGuard(pendingEl) {
   };
   const onDiscard = () => {
     cleanup();
-    // restore snapshot
+    // restore snapshot — undo all preset/field changes made during this session
     Object.entries(snapshot).forEach(([elId, val]) => {
-      const el = document.getElementById(elId);
-      if (el) el.value = val;
+      const fld = document.getElementById(elId);
+      if (fld) fld.value = val;
     });
     _syncTuningFromAdvanced();
     _neuralDirty = false;
@@ -1503,6 +1520,7 @@ const NEURAL_ID_MAP = {
 };
 
 let _neuralDirty = false;
+let _neuralSnapshot = {}; // snapshot of Neural fields taken on tab entry — used by DISCARD
 
 function _updateNeuralDirty() {
   const btn = document.getElementById('btn-save-neural');
