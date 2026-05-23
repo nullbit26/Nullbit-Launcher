@@ -2808,8 +2808,11 @@ input:checked + .toggle-slider::before {
 .launch-status.bot-online .lst-row,
 .launch-status.bot-online .lst-state-row {
   visibility: visible;
-  opacity: 1;
-  animation: none;
+  animation: statusFadeIn 0.5s ease forwards;
+}
+@keyframes statusFadeIn {
+  0%   { opacity: 0; transform: translateY(-2px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 .launch-status.bot-booting .lst-state-row {
   visibility: visible;

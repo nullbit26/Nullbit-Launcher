@@ -1046,7 +1046,6 @@ function resetBotStatusWidget() {
 
 let _statusBootTimer = null;
 let _statusDotsTimer = null;
-const _GLITCH_CHARS  = '▓▒░█▄▀■□◈◉⬡';
 
 function _offlineStatusBar() {
   const bar = document.getElementById('bot-statusbar');
@@ -1084,35 +1083,17 @@ function _bootStatusBar() {
     targets.forEach(el => { if (el) el.textContent = d; });
   }, 280);
 
-  // After 2s glitch-reveal: scramble each element then settle
+  // After 2s fade-in real values
   _statusBootTimer = setTimeout(() => {
     if (_statusDotsTimer) { clearInterval(_statusDotsTimer); _statusDotsTimer = null; }
     bar.classList.remove('bot-booting');
     bar.classList.add('bot-online');
-    // Glitch-reveal each value
-    _glitchReveal(hpVal, '—');
-    _glitchReveal(foodVal, '—');
-    if (segEl) _glitchReveal(segEl, '▱▱▱▱▱▱▱▱▱▱▱▱');
+    if (hpVal)   hpVal.textContent   = '—';
+    if (foodVal) foodVal.textContent = '—';
+    if (segEl)   segEl.textContent   = '▱▱▱▱▱▱▱▱▱▱▱▱';
   }, 2000);
 }
 
-function _glitchReveal(el, finalText) {
-  if (!el) return;
-  let frame = 0;
-  const total = 12;
-  const iv = setInterval(() => {
-    frame++;
-    if (frame >= total) {
-      el.textContent = finalText;
-      clearInterval(iv);
-      return;
-    }
-    // Random glitch chars
-    el.textContent = Array.from({ length: Math.max(1, finalText.length) }, () =>
-      _GLITCH_CHARS[Math.floor(Math.random() * _GLITCH_CHARS.length)]
-    ).join('');
-  }, 60);
-}
 
 function drawChart() {
   const canvas = document.getElementById('score-chart');
