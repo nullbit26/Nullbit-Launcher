@@ -265,30 +265,25 @@
         <button class="btn-launch" id="btn-launch" onclick="toggleBot()">
           <span id="btn-launch-text">▶ LAUNCH BOT</span>
         </button>
-      </div>
-
-      <!-- BOT STATUS WIDGET -->
-      <div class="bot-status-widget" id="bot-status-widget">
-        <div class="bsw-hp-block">
-          <div class="bsw-label">HP</div>
-          <div class="bsw-hp-bar-wrap">
-            <div class="bsw-hp-bar" id="bsw-hp-bar" style="width:0%"></div>
-            <div class="bsw-hp-glow" id="bsw-hp-glow"></div>
+        <div class="bsw-inline" id="bot-status-widget">
+          <div class="bsw-inline-stat">
+            <span class="bsw-inline-label">HP</span>
+            <div class="bsw-inline-bar-wrap">
+              <div class="bsw-hp-bar" id="bsw-hp-bar" style="width:0%"></div>
+              <div class="bsw-hp-glow" id="bsw-hp-glow"></div>
+            </div>
+            <span class="bsw-inline-val" id="bsw-hp-val">—</span>
           </div>
-          <div class="bsw-hp-val" id="bsw-hp-val">—</div>
-        </div>
-        <div class="bsw-divider"></div>
-        <div class="bsw-food-block">
-          <div class="bsw-label">FOOD</div>
-          <div class="bsw-hp-bar-wrap">
-            <div class="bsw-food-bar" id="bsw-food-bar" style="width:0%"></div>
+          <div class="bsw-inline-sep"></div>
+          <div class="bsw-inline-stat">
+            <span class="bsw-inline-label">FOOD</span>
+            <div class="bsw-inline-bar-wrap">
+              <div class="bsw-food-bar" id="bsw-food-bar" style="width:0%"></div>
+            </div>
+            <span class="bsw-inline-val" id="bsw-food-val">—</span>
           </div>
-          <div class="bsw-hp-val" id="bsw-food-val">—</div>
-        </div>
-        <div class="bsw-divider"></div>
-        <div class="bsw-state-block">
-          <div class="bsw-label">STATE</div>
-          <div class="bsw-state-badge" id="bsw-state-badge">OFFLINE</div>
+          <div class="bsw-inline-sep"></div>
+          <div class="bsw-state-badge state-offline" id="bsw-state-badge">OFFLINE</div>
         </div>
       </div>
 
