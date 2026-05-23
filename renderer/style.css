@@ -1089,9 +1089,9 @@ input, textarea {
 /* ── LAUNCH ROW ── */
 .launch-row {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 14px;
-  min-height: 52px;
+  min-height: 56px;
   margin-bottom: 4px;
 }
 .btn-launch {
@@ -2779,9 +2779,10 @@ input:checked + .toggle-slider::before {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
+  gap: 5px;
   margin-left: 18px;
   flex: 1;
+  min-width: 0;
 }
 .lst-row {
   display: flex;
@@ -2791,6 +2792,7 @@ input:checked + .toggle-slider::before {
 .lst-state-row {
   display: flex;
   align-items: center;
+  margin-top: 1px;
 }
 .lst-item {
   display: flex;
