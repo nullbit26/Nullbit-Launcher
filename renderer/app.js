@@ -1872,7 +1872,7 @@ async function installBotUpdateInline() {
   if (botRow) botRow.style.display = 'none';
   if (progressRow) progressRow.style.display = 'flex';
 
-  launcher.on('update-progress', ({ pct: p }) => {
+  launcher.onUpdateProgress(({ pct: p }) => {
     const safe = Math.min(100, Math.round(p || 0));
     if (bar) bar.style.width = safe + '%';
     if (pct) pct.textContent = safe + '%';
