@@ -1,5 +1,20 @@
 # NULLBIT Launcher — Changelog
 
+## v3.0.23
+- **feat**: Cyberpunk glitch banner animation on show (`bannerGlitchIn`) — clip-path reveal, scaleY bounce, hue-rotate flash (0.45s steps)
+- **feat**: Cyberpunk glitch banner animation on dismiss (`bannerGlitchOut`) — X-split, scaleY collapse, brightness flash (0.35s)
+- **feat**: Chromatic aberration `::after` edge overlay on banner (red/cyan)
+- **feat**: Animated progress bar — dark shimmer body (`cyberBarShift`) + gold spark sweep (`cyberSpark`)
+- **fix**: Removed duplicate `downloadFile` — bot update now installs reliably on first attempt
+
+## v3.0.22
+- **fix**: `installBotUpdateInline` — replaced `launcher.on('update-progress')` with `launcher.onUpdateProgress` — progress bar now updates during bot download
+
+## v3.0.21
+- **fix**: Hide launcher update row in banner when only a bot update is available
+- **fix**: Version string — remove redundant `v` prefix in bot version display
+- **fix**: Reset banner row visibility on dismiss so next show works correctly
+
 ## v3.0.7
 - Added **NEURAL** tab — live parameter panel for bot behavior tuning
   - Sub-item under CORE ACCESS in sidebar
