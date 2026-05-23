@@ -2,3 +2,7 @@ node_modules/
 dist/
 core/node_modules/
 *.log
+AIBot.exe
+AIBot.exe.backup
+AIBot.exe.old
+*.lnk
