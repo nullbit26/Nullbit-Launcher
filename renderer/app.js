@@ -1029,7 +1029,7 @@ function updateBotStatus({ hp = 0, maxHp = 20, food = 0, state = 'IDLE' }) {
 
   if (badge) {
     badge.textContent = state;
-    badge.className = 'bsb-state ' + (STATE_CLASS_MAP[state] || 'state-idle');
+    badge.className = 'lst-state ' + (STATE_CLASS_MAP[state] || 'state-idle');
   }
 }
 
@@ -1037,9 +1037,9 @@ function resetBotStatusWidget() {
   const hpVal   = document.getElementById('bsw-hp-val');
   const foodVal = document.getElementById('bsw-food-val');
   const badge   = document.getElementById('bsw-state-badge');
-  if (hpVal)   { hpVal.textContent = '—'; hpVal.className = 'bsb-val bsb-hp-val'; }
+  if (hpVal)   { hpVal.textContent = '—'; hpVal.className = 'lst-val lst-hp'; }
   if (foodVal) foodVal.textContent = '—';
-  if (badge)   { badge.textContent = 'OFFLINE'; badge.className = 'bsb-state state-offline'; }
+  if (badge)   { badge.textContent = 'OFFLINE'; badge.className = 'lst-state state-offline'; }
 }
 
 function drawChart() {

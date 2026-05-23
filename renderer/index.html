@@ -265,30 +265,27 @@
         <button class="btn-launch" id="btn-launch" onclick="toggleBot()">
           <span id="btn-launch-text">▶ LAUNCH BOT</span>
         </button>
-
-      </div>
-
-      <!-- BOT STATUS BAR -->
-      <div class="bot-statusbar" id="bot-statusbar">
-        <div class="bsb-inv">
-          <span class="bsb-label">INV</span>
-          <div class="bsb-inv-bar-wrap">
-            <div class="bsb-inv-bar" id="inv-bar-fill" style="width:0%"></div>
-          </div>
-          <span class="bsb-val" id="inv-bar-text">0 / 36</span>
+        <div class="launch-status" id="bot-statusbar">
+          <span class="lst-item">
+            <span class="lst-label">INV</span>
+            <div class="lst-inv-bar-wrap">
+              <div class="lst-inv-bar" id="inv-bar-fill" style="width:0%"></div>
+            </div>
+            <span class="lst-val" id="inv-bar-text">0 / 36</span>
+          </span>
+          <span class="lst-dot"></span>
+          <span class="lst-item">
+            <span class="lst-label">HP</span>
+            <span class="lst-val lst-hp" id="bsw-hp-val">—</span>
+          </span>
+          <span class="lst-dot"></span>
+          <span class="lst-item">
+            <span class="lst-label">FOOD</span>
+            <span class="lst-val" id="bsw-food-val">—</span>
+          </span>
+          <span class="lst-dot"></span>
+          <span class="lst-state" id="bsw-state-badge">OFFLINE</span>
         </div>
-        <div class="bsb-sep"></div>
-        <div class="bsb-stat">
-          <span class="bsb-label">HP</span>
-          <span class="bsb-val bsb-hp-val" id="bsw-hp-val">—</span>
-        </div>
-        <div class="bsb-sep"></div>
-        <div class="bsb-stat">
-          <span class="bsb-label">FOOD</span>
-          <span class="bsb-val" id="bsw-food-val">—</span>
-        </div>
-        <div class="bsb-sep"></div>
-        <div class="bsb-state" id="bsw-state-badge">OFFLINE</div>
       </div>
 
       <!-- TACTICAL SCORES -->
