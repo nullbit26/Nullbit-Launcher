@@ -18,6 +18,16 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Extract release notes from CHANGELOG.md
+        id: changelog
+        shell: bash
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          NOTES=$(awk "/^## v$VERSION/{flag=1; next} /^## v/{flag=0} flag" CHANGELOG.md)
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Install dependencies
         working-directory: core
         run: npm install
@@ -26,4 +36,5 @@ jobs:
         working-directory: core
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          RELEASE_NOTES: ${{ steps.changelog.outputs.RELEASE_NOTES }}
         run: npm run publish

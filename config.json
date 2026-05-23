@@ -19,5 +19,34 @@
   },
   "system": {
     "auto_restart": true
+  },
+  "neural": {
+    "combatFleeCriticalHp": 6,
+    "combatFleeSafeHp": 12,
+    "combatFleeRetreatScoreThreshold": 2.5,
+    "combatFleeNavDistance": 10,
+    "combatFleeImmediateDangerBlocks": 11,
+    "combatFleeRetreatHpWeight": 1,
+    "combatFleeRetreatPressureWeight": 0.58,
+    "pvpAttackCooldown": 600,
+    "pvpIdealDistance": 2.9,
+    "pvpKiteHpThreshold": 8,
+    "pvpEngageSafeHp": 15,
+    "pathThinkTimeoutMs": 24000,
+    "stuckCheckTicks": 11,
+    "followDistance": 3,
+    "guardMobDistance": 10,
+    "branchLength": 32,
+    "maxBranches": 8,
+    "oreScanRadius": 6,
+    "torchInterval": 8,
+    "aiCooldownMs": 4000,
+    "aiTimeoutMs": 12000,
+    "openAiThreadResetAfterMessages": 0,
+    "gatherGuardSurvivalThreatCount": 3,
+    "gatherGuardSurvivalLowHp": 8,
+    "gatherGuardFightMaxThreats": 2,
+    "gatherGuardFightMinHpRatio": 0.6,
+    "gatherGuardFightMaxEngageDist": 12
   }
 }

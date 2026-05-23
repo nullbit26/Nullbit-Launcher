@@ -1,8 +1,23 @@
-# NULLBIT LAUNCHER v3.0.4 - Cyberpunk Edition
+# NULLBIT LAUNCHER v3.0.7 - Cyberpunk Edition
 
 **Professional AI Bot Management Interface for Minecraft**
 
-🎮 **What's New in v3.0.4:**
+🎮 **What's New in v3.0.7:**
+- **NEURAL Tab**: Live parameter panel for real-time bot behavior tuning
+  - Sub-item under CORE ACCESS in sidebar
+  - 5 sections: COMBAT FLEE, PVP, NAVIGATION, MINING, AI (22 parameters total)
+  - SAVE applies changes to running bot in ~300ms — no restart needed
+  - Mining params (BRANCH_LENGTH etc.) take effect on next bot start
+
+🎮 **Previous v3.0.6:**
+- Fixed duplicate `nsis-install-update` IPC handler crash on startup
+- Switched launcher auto-update to native NSIS `electron-updater` flow
+
+🎮 **Previous v3.0.5:**
+- Added cyberpunk full-screen restart modal after bot download
+- Fixed telemetry OFFLINE status
+
+🎮 **Previous v3.0.4:**
 - **DIAGNOSTICS Tab**: Neural Diagnostics with real-time telemetry
   - Tactical Weights, Combat Telemetry, System Watchdog
   - Expedition stats, Critical Events log, User Override status
@@ -63,12 +78,41 @@
 | **SERVER** | Host | Server IP or domain (e.g., `play.server.com`) |
 | | Port | Server port (default: 25565) |
 | | Version | Minecraft version (e.g., `1.20.1`) |
-| | Auth | `offline` (cracked) or `microsoft` (premium) |
+| | Auth | `offline` (no auth) or `microsoft` (premium) |
 | **BOT IDENTITY** | Username | Bot name in-game |
 | | Login Password | For online-mode servers |
 | | Allowed User | Your nickname (bot obeys only you) |
 | **AI CONFIG** | OpenAI API Key | Your `sk-...` key for GPT features |
 | | Assistant ID | Your `asst_...` ID for custom assistant |
+
+### NEURAL Tab — Live Parameter Tuning
+
+| Section | Parameter | Description |
+|---------|-----------|-------------|
+| **COMBAT FLEE** | Critical HP | Bot flees if HP ≤ this value (default: 6) |
+| | Safe HP | Bot returns to combat when HP ≥ this (default: 12) |
+| | Retreat Threshold | Risk score to trigger flee (default: 2.5) |
+| | Flee Distance | Blocks to run from threat (default: 10) |
+| | Danger Radius | Immediate danger zone in blocks (default: 11) |
+| | HP Weight | HP factor in retreat score (default: 1.0) |
+| | Pressure Weight | Crowd pressure factor (default: 0.58) |
+| **PVP** | Attack Cooldown | ms between sword hits (default: 600) |
+| | Ideal Distance | Melee engagement range (default: 2.9) |
+| | Kite HP | Switch to kiting below this HP (default: 8) |
+| | Engage Safe HP | Attack aggressively above this HP (default: 15) |
+| **NAVIGATION** | Path Think Timeout | ms for A* pathfinding (default: 24000) |
+| | Stuck Check Ticks | Ticks before stuck detection (default: 11) |
+| | Follow Distance | Player follow range in blocks (default: 3) |
+| | Guard Mob Distance | Mob guard radius (default: 10) |
+| **MINING** | Branch Length | Tunnel length per branch (default: 32) — *restart required* |
+| | Max Branches | Branches per session (default: 8) — *restart required* |
+| | Ore Scan Radius | Ore detection radius (default: 6) — *restart required* |
+| | Torch Interval | Steps between torches (default: 8) — *restart required* |
+| **AI** | AI Cooldown | ms between AI requests (default: 4000) |
+| | AI Timeout | AI response timeout ms (default: 12000) |
+| | Thread Reset | Reset thread after N replies, 0=off (default: 0) |
+
+> **SAVE** writes to `config.json → neural` and hot-reloads into the running bot in ~300ms. Mining params require bot restart.
 
 ### AI Setup (Optional)
 
@@ -148,10 +192,14 @@ For issues and feature requests:
 
 ## Version History
 
-- **v3.0.3** (2024-05-22) - Cyberpunk Edition: Auto bot download, hacking effects, improved UI
-- **v3.0.0** (2024-05-20) - Initial release with basic launcher functionality
+- **v3.0.7** (2026-05-23) - NEURAL Tab: live bot parameter tuning, hot-reload, BranchMineJob params exposed
+- **v3.0.6** (2026-05-22) - Fixed duplicate IPC handler crash, NSIS auto-update
+- **v3.0.5** (2026-05-22) - Restart modal after bot download, telemetry OFFLINE fix
+- **v3.0.4** (2026-05-21) - DIAGNOSTICS tab, real terminal logic
+- **v3.0.3** (2026-05-22) - Cyberpunk Edition: Auto bot download, hacking effects, improved UI
+- **v3.0.0** (2026-05-20) - Initial release with basic launcher functionality
 
 ---
 
 **© 2026 NULLBIT Systems**
-**Current Version: v3.0.3**
+**Current Version: v3.0.7**

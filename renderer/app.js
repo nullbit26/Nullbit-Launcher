@@ -294,7 +294,7 @@ function applyGlitchEffect(el) {
   }, 30); // Brief flash before wave starts
 }
 
-function switchTab(el) {
+function _doSwitchTab(el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const tabs = document.querySelectorAll('.tab');
   tabs.forEach(t => t.classList.remove('active'));
@@ -305,6 +305,91 @@ function switchTab(el) {
     target.classList.add('active', 'tab-enter');
     requestAnimationFrame(() => requestAnimationFrame(() => target.classList.remove('tab-enter')));
   }
+  // Keep core group open if config or neural is active
+  _syncCoreAccordion(el.dataset.tab);
+}
+
+function _syncCoreAccordion(tabName) {
+  const group = document.getElementById('nav-group-core');
+  if (!group) return;
+  if (tabName === 'config' || tabName === 'neural') {
+    group.classList.add('open');
+  } else {
+    group.classList.remove('open');
+  }
+}
+
+function toggleCoreAccordion(e) {
+  const group = document.getElementById('nav-group-core');
+  if (!group) return;
+  group.classList.toggle('open');
+  e.stopPropagation();
+}
+
+function switchTab(el) {
+  const currentTab = document.querySelector('.nav-item.active');
+  const leavingNeural = currentTab && currentTab.dataset.tab === 'neural';
+  if (leavingNeural && _neuralDirty && el.dataset.tab !== 'neural') {
+    _showNeuralGuard(el);
+    return;
+  }
+  // If clicking CORE ACCESS header — also toggle accordion
+  if (el.dataset.tab === 'config') {
+    const group = document.getElementById('nav-group-core');
+    if (group) group.classList.add('open');
+  }
+  _doSwitchTab(el);
+}
+
+function _showNeuralGuard(pendingEl) {
+  const overlay = document.getElementById('neural-guard-overlay');
+  const ver = document.getElementById('ngm-version');
+  if (ver && _config) ver.textContent = _config.bot_version || _config.version || '?';
+  if (!overlay) return;
+
+  // snapshot current field values for discard
+  const snapshot = {};
+  Object.keys(NEURAL_ID_MAP).forEach(elId => {
+    const el = document.getElementById(elId);
+    if (el) snapshot[elId] = el.value;
+  });
+
+  // re-trigger animation
+  overlay.style.display = 'none';
+  void overlay.offsetWidth;
+  overlay.style.display = 'block';
+
+  const onSave = async () => {
+    cleanup();
+    await saveNeuralConfig();
+    _doSwitchTab(pendingEl);
+  };
+  const onDiscard = () => {
+    cleanup();
+    // restore snapshot
+    Object.entries(snapshot).forEach(([elId, val]) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = val;
+    });
+    _syncTuningFromAdvanced();
+    _neuralDirty = false;
+    _updateNeuralDirty();
+    _doSwitchTab(pendingEl);
+  };
+  const onOverlay = (e) => {
+    if (e.target === overlay) onDiscard();
+  };
+
+  function cleanup() {
+    overlay.style.display = 'none';
+    document.getElementById('ngm-save-btn').removeEventListener('click', onSave);
+    document.getElementById('ngm-discard-btn').removeEventListener('click', onDiscard);
+    overlay.removeEventListener('click', onOverlay);
+  }
+
+  document.getElementById('ngm-save-btn').addEventListener('click', onSave);
+  document.getElementById('ngm-discard-btn').addEventListener('click', onDiscard);
+  overlay.addEventListener('click', onOverlay);
 }
 
 // ────────────────────────────────────────────
@@ -634,6 +719,7 @@ function setBotRunning(running) {
   const tbTxt  = document.getElementById('tb-status-text');
 
   triggerGlitchFlash(running ? 'launch' : 'stop');
+  _triggerNeuralIconState(running);
 
   if (running) {
     if (btn) {
@@ -668,6 +754,22 @@ function setBotRunning(running) {
     stopUptime();
     if (tbWrap) tbWrap.className = 'titlebar-status offline';
     if (tbTxt)  tbTxt.textContent = 'OFFLINE';
+  }
+}
+
+function _triggerNeuralIconState(running) {
+  const icon = document.querySelector('.nav-item.nav-sub .nav-icon');
+  if (!icon) return;
+  icon.classList.remove('neural-icon-boot', 'neural-icon-online', 'neural-icon-offline');
+  if (running) {
+    icon.classList.add('neural-icon-boot');
+    setTimeout(() => {
+      icon.classList.remove('neural-icon-boot');
+      icon.classList.add('neural-icon-online');
+    }, 1800);
+  } else {
+    icon.classList.add('neural-icon-offline');
+    setTimeout(() => icon.classList.remove('neural-icon-offline'), 1200);
   }
 }
 
@@ -1065,6 +1167,42 @@ async function loadConfigUI() {
   document.getElementById('cfg-auto-restart').checked = system.auto_restart !== false;
   document.getElementById('cfg-check-updates').checked = system.check_updates !== false;
 
+  // Neural Config
+  const neural = _config.neural || {};
+  const nSetVal = (id, val, def) => {
+    const el = document.getElementById(id);
+    if (el) el.value = (val !== undefined && val !== null) ? val : def;
+  };
+  nSetVal('n-combatFleeCriticalHp',             neural.combatFleeCriticalHp,             6);
+  nSetVal('n-combatFleeSafeHp',                 neural.combatFleeSafeHp,                 12);
+  nSetVal('n-combatFleeRetreatScoreThreshold',  neural.combatFleeRetreatScoreThreshold,  2.5);
+  nSetVal('n-combatFleeNavDistance',            neural.combatFleeNavDistance,            10);
+  nSetVal('n-combatFleeImmediateDangerBlocks',  neural.combatFleeImmediateDangerBlocks,  11);
+  nSetVal('n-combatFleeRetreatHpWeight',        neural.combatFleeRetreatHpWeight,        1.0);
+  nSetVal('n-combatFleeRetreatPressureWeight',  neural.combatFleeRetreatPressureWeight,  0.58);
+  nSetVal('n-pvpAttackCooldown',                neural.pvpAttackCooldown,                600);
+  nSetVal('n-pvpIdealDistance',                 neural.pvpIdealDistance,                 2.9);
+  nSetVal('n-pvpKiteHpThreshold',               neural.pvpKiteHpThreshold,               8);
+  nSetVal('n-pvpEngageSafeHp',                  neural.pvpEngageSafeHp,                  15);
+  nSetVal('n-pathThinkTimeoutMs',               neural.pathThinkTimeoutMs,               24000);
+  nSetVal('n-stuckCheckTicks',                  neural.stuckCheckTicks,                  11);
+  nSetVal('n-followDistance',                   neural.followDistance,                   3);
+  nSetVal('n-guardMobDistance',                 neural.guardMobDistance,                 10);
+  nSetVal('n-branchLength',                     neural.branchLength,                     32);
+  nSetVal('n-maxBranches',                      neural.maxBranches,                      8);
+  nSetVal('n-oreScanRadius',                    neural.oreScanRadius,                    6);
+  nSetVal('n-torchInterval',                    neural.torchInterval,                    8);
+  nSetVal('n-aiCooldownMs',                     neural.aiCooldownMs,                     4000);
+  nSetVal('n-aiTimeoutMs',                      neural.aiTimeoutMs,                      12000);
+  nSetVal('n-openAiThreadResetAfterMessages',   neural.openAiThreadResetAfterMessages,   0);
+  nSetVal('n-gatherGuardSurvivalThreatCount',   neural.gatherGuardSurvivalThreatCount,   3);
+  nSetVal('n-gatherGuardSurvivalLowHp',         neural.gatherGuardSurvivalLowHp,         8);
+  nSetVal('n-gatherGuardFightMaxThreats',        neural.gatherGuardFightMaxThreats,       2);
+  nSetVal('n-gatherGuardFightMinHpRatio',        neural.gatherGuardFightMinHpRatio,       0.6);
+  nSetVal('n-gatherGuardFightMaxEngageDist',     neural.gatherGuardFightMaxEngageDist,    12);
+  _neuralDirty = false;
+  _updateNeuralDirty();
+
   const badge = document.getElementById('version-badge');
   badge.textContent = 'v' + (_config.bot_version || _config.version || '?');
   
@@ -1133,6 +1271,301 @@ async function saveSystemConfig() {
 }
 
 // ────────────────────────────────────────────
+//  Neural Mode Switcher
+// ────────────────────────────────────────────
+function switchNeuralMode(mode, btn) {
+  ['presets','tuning','advanced'].forEach(m => {
+    const panel = document.getElementById('neural-panel-' + m);
+    const b = document.getElementById('nmt-' + m);
+    if (panel) panel.style.display = m === mode ? '' : 'none';
+    if (b) b.classList.toggle('active', m === mode);
+  });
+}
+
+// ────────────────────────────────────────────
+//  Presets
+// ────────────────────────────────────────────
+const NEURAL_PRESETS = {
+  defensive: {
+    combatFleeCriticalHp: 10, combatFleeSafeHp: 16,
+    combatFleeRetreatScoreThreshold: 1.5, combatFleeNavDistance: 14,
+    combatFleeImmediateDangerBlocks: 8, combatFleeRetreatHpWeight: 1.5,
+    combatFleeRetreatPressureWeight: 1.0, pvpAttackCooldown: 800,
+    pvpIdealDistance: 3.5, pvpKiteHpThreshold: 12, pvpEngageSafeHp: 18,
+    pathThinkTimeoutMs: 30000, stuckCheckTicks: 8, followDistance: 4,
+    guardMobDistance: 14, branchLength: 24, maxBranches: 6,
+    oreScanRadius: 6, torchInterval: 8, aiCooldownMs: 5000,
+    aiTimeoutMs: 15000, openAiThreadResetAfterMessages: 0,
+    gatherGuardSurvivalThreatCount: 2, gatherGuardSurvivalLowHp: 10,
+    gatherGuardFightMaxThreats: 1, gatherGuardFightMinHpRatio: 0.75,
+    gatherGuardFightMaxEngageDist: 8,
+  },
+  balanced: { ...null },
+  aggressive: {
+    combatFleeCriticalHp: 4, combatFleeSafeHp: 8,
+    combatFleeRetreatScoreThreshold: 3.5, combatFleeNavDistance: 8,
+    combatFleeImmediateDangerBlocks: 14, combatFleeRetreatHpWeight: 0.6,
+    combatFleeRetreatPressureWeight: 0.4, pvpAttackCooldown: 450,
+    pvpIdealDistance: 2.5, pvpKiteHpThreshold: 5, pvpEngageSafeHp: 10,
+    pathThinkTimeoutMs: 18000, stuckCheckTicks: 14, followDistance: 2,
+    guardMobDistance: 7, branchLength: 40, maxBranches: 10,
+    oreScanRadius: 8, torchInterval: 10, aiCooldownMs: 3000,
+    aiTimeoutMs: 10000, openAiThreadResetAfterMessages: 0,
+    gatherGuardSurvivalThreatCount: 4, gatherGuardSurvivalLowHp: 5,
+    gatherGuardFightMaxThreats: 3, gatherGuardFightMinHpRatio: 0.45,
+    gatherGuardFightMaxEngageDist: 16,
+  },
+  ghost: {
+    combatFleeCriticalHp: 14, combatFleeSafeHp: 18,
+    combatFleeRetreatScoreThreshold: 0.8, combatFleeNavDistance: 18,
+    combatFleeImmediateDangerBlocks: 6, combatFleeRetreatHpWeight: 2.0,
+    combatFleeRetreatPressureWeight: 1.5, pvpAttackCooldown: 900,
+    pvpIdealDistance: 4, pvpKiteHpThreshold: 14, pvpEngageSafeHp: 20,
+    pathThinkTimeoutMs: 40000, stuckCheckTicks: 6, followDistance: 5,
+    guardMobDistance: 18, branchLength: 20, maxBranches: 4,
+    oreScanRadius: 4, torchInterval: 6, aiCooldownMs: 6000,
+    aiTimeoutMs: 18000, openAiThreadResetAfterMessages: 0,
+    gatherGuardSurvivalThreatCount: 2, gatherGuardSurvivalLowHp: 12,
+    gatherGuardFightMaxThreats: 1, gatherGuardFightMinHpRatio: 0.9,
+    gatherGuardFightMaxEngageDist: 6,
+  },
+};
+// balanced is set after NEURAL_DEFAULTS is declared below
+
+function applyPreset(name) {
+  const preset = NEURAL_PRESETS[name];
+  if (!preset) return;
+  Object.entries(NEURAL_ID_MAP).forEach(([elId, key]) => {
+    const el = document.getElementById(elId);
+    if (el && preset[key] !== undefined) el.value = preset[key];
+  });
+  // highlight active card
+  document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById('preset-' + name);
+  if (card) card.classList.add('active');
+  _neuralDirty = true;
+  _updateNeuralDirty();
+  // sync tuning sliders to match preset
+  _syncTuningFromAdvanced();
+}
+
+// ────────────────────────────────────────────
+//  Tuning Sliders
+// ────────────────────────────────────────────
+const TUNING_MAP = {
+  aggression: {
+    // 1=passive(defensive), 10=aggressive
+    params: (v) => ({
+      pvpAttackCooldown:               _lerp(v, 1, 10, 850, 450),
+      pvpKiteHpThreshold:              _lerp(v, 1, 10, 12, 4),
+      pvpEngageSafeHp:                 _lerp(v, 1, 10, 18, 9),
+      combatFleeRetreatScoreThreshold: _lerp(v, 1, 10, 1.2, 3.8),
+      combatFleeRetreatHpWeight:       _lerp(v, 1, 10, 1.6, 0.5),
+    })
+  },
+  survival: {
+    // 1=reckless, 10=cautious
+    params: (v) => ({
+      combatFleeCriticalHp:            _lerp(v, 1, 10, 3, 12),
+      combatFleeSafeHp:                _lerp(v, 1, 10, 7, 17),
+      combatFleeNavDistance:           _lerp(v, 1, 10, 6, 16),
+      combatFleeImmediateDangerBlocks: _lerp(v, 1, 10, 14, 7),
+      combatFleeRetreatPressureWeight: _lerp(v, 1, 10, 0.3, 1.2),
+    })
+  },
+  gather: {
+    // 1=bold, 10=careful
+    params: (v) => ({
+      gatherGuardSurvivalThreatCount:  Math.round(_lerp(v, 1, 10, 5, 2)),
+      gatherGuardSurvivalLowHp:        Math.round(_lerp(v, 1, 10, 4, 12)),
+      gatherGuardFightMaxThreats:      Math.round(_lerp(v, 1, 10, 4, 1)),
+      gatherGuardFightMinHpRatio:      _lerp(v, 1, 10, 0.35, 0.85),
+      gatherGuardFightMaxEngageDist:   Math.round(_lerp(v, 1, 10, 18, 7)),
+    })
+  },
+  mobility: {
+    // 1=fast, 10=thorough
+    params: (v) => ({
+      pathThinkTimeoutMs: Math.round(_lerp(v, 1, 10, 8000, 40000)),
+      stuckCheckTicks:    Math.round(_lerp(v, 1, 10, 16, 6)),
+      followDistance:     Math.round(_lerp(v, 1, 10, 2, 5)),
+      guardMobDistance:   Math.round(_lerp(v, 1, 10, 6, 16)),
+    })
+  },
+};
+
+function _lerp(v, inMin, inMax, outMin, outMax) {
+  const t = (v - inMin) / (inMax - inMin);
+  const result = outMin + t * (outMax - outMin);
+  return Math.round(result * 100) / 100;
+}
+
+function _updateTuningFill(id, value) {
+  const fill = document.getElementById('tuning-fill-' + id);
+  const range = document.getElementById('tuning-' + id);
+  if (!fill || !range) return;
+  const pct = ((value - range.min) / (range.max - range.min)) * 100;
+  fill.style.width = pct + '%';
+}
+
+function onTuningChange(id, value) {
+  const v = Number(value);
+  document.getElementById('tuning-val-' + id).textContent = v;
+  _updateTuningFill(id, v);
+  const map = TUNING_MAP[id];
+  if (!map) return;
+  const params = map.params(v);
+  Object.entries(params).forEach(([key, val]) => {
+    const elId = Object.keys(NEURAL_ID_MAP).find(k => NEURAL_ID_MAP[k] === key);
+    if (elId) {
+      const el = document.getElementById(elId);
+      if (el) el.value = val;
+    }
+  });
+  _neuralDirty = true;
+  _updateNeuralDirty();
+}
+
+function _clampTuning(v) { return Math.max(1, Math.min(10, Math.round(v))); }
+
+function _setTuningSlider(id, v) {
+  const clamped = _clampTuning(v);
+  const el = document.getElementById('tuning-' + id);
+  const lbl = document.getElementById('tuning-val-' + id);
+  if (el) el.value = clamped;
+  if (lbl) lbl.textContent = clamped;
+  _updateTuningFill(id, clamped);
+}
+
+function _syncTuningFromAdvanced() {
+  const aggr = document.getElementById('n-pvpAttackCooldown');
+  if (aggr) _setTuningSlider('aggression', _lerp(Number(aggr.value), 850, 450, 1, 10));
+
+  const surv = document.getElementById('n-combatFleeCriticalHp');
+  if (surv) _setTuningSlider('survival', _lerp(Number(surv.value), 3, 12, 1, 10));
+
+  const gath = document.getElementById('n-gatherGuardSurvivalLowHp');
+  if (gath) _setTuningSlider('gather', _lerp(Number(gath.value), 4, 12, 1, 10));
+
+  const mob = document.getElementById('n-pathThinkTimeoutMs');
+  if (mob) _setTuningSlider('mobility', _lerp(Number(mob.value), 8000, 40000, 1, 10));
+}
+
+// ────────────────────────────────────────────
+//  Neural Config
+// ────────────────────────────────────────────
+
+NEURAL_PRESETS.balanced = null; // placeholder — set below
+const NEURAL_DEFAULTS = {
+  combatFleeCriticalHp: 6, combatFleeSafeHp: 12,
+  combatFleeRetreatScoreThreshold: 2.5, combatFleeNavDistance: 10,
+  combatFleeImmediateDangerBlocks: 11, combatFleeRetreatHpWeight: 1.0,
+  combatFleeRetreatPressureWeight: 0.58, pvpAttackCooldown: 600,
+  pvpIdealDistance: 2.9, pvpKiteHpThreshold: 8, pvpEngageSafeHp: 15,
+  pathThinkTimeoutMs: 24000, stuckCheckTicks: 11, followDistance: 3,
+  guardMobDistance: 10, branchLength: 32, maxBranches: 8,
+  oreScanRadius: 6, torchInterval: 8, aiCooldownMs: 4000,
+  aiTimeoutMs: 12000, openAiThreadResetAfterMessages: 0,
+  gatherGuardSurvivalThreatCount: 3, gatherGuardSurvivalLowHp: 8,
+  gatherGuardFightMaxThreats: 2, gatherGuardFightMinHpRatio: 0.6,
+  gatherGuardFightMaxEngageDist: 12,
+};
+NEURAL_PRESETS.balanced = { ...NEURAL_DEFAULTS };
+
+const NEURAL_ID_MAP = {
+  'n-combatFleeCriticalHp':            'combatFleeCriticalHp',
+  'n-combatFleeSafeHp':                'combatFleeSafeHp',
+  'n-combatFleeRetreatScoreThreshold': 'combatFleeRetreatScoreThreshold',
+  'n-combatFleeNavDistance':           'combatFleeNavDistance',
+  'n-combatFleeImmediateDangerBlocks': 'combatFleeImmediateDangerBlocks',
+  'n-combatFleeRetreatHpWeight':       'combatFleeRetreatHpWeight',
+  'n-combatFleeRetreatPressureWeight': 'combatFleeRetreatPressureWeight',
+  'n-pvpAttackCooldown':               'pvpAttackCooldown',
+  'n-pvpIdealDistance':                'pvpIdealDistance',
+  'n-pvpKiteHpThreshold':              'pvpKiteHpThreshold',
+  'n-pvpEngageSafeHp':                 'pvpEngageSafeHp',
+  'n-pathThinkTimeoutMs':              'pathThinkTimeoutMs',
+  'n-stuckCheckTicks':                 'stuckCheckTicks',
+  'n-followDistance':                  'followDistance',
+  'n-guardMobDistance':                'guardMobDistance',
+  'n-branchLength':                    'branchLength',
+  'n-maxBranches':                     'maxBranches',
+  'n-oreScanRadius':                   'oreScanRadius',
+  'n-torchInterval':                   'torchInterval',
+  'n-aiCooldownMs':                    'aiCooldownMs',
+  'n-aiTimeoutMs':                     'aiTimeoutMs',
+  'n-openAiThreadResetAfterMessages':  'openAiThreadResetAfterMessages',
+  'n-gatherGuardSurvivalThreatCount':  'gatherGuardSurvivalThreatCount',
+  'n-gatherGuardSurvivalLowHp':        'gatherGuardSurvivalLowHp',
+  'n-gatherGuardFightMaxThreats':      'gatherGuardFightMaxThreats',
+  'n-gatherGuardFightMinHpRatio':      'gatherGuardFightMinHpRatio',
+  'n-gatherGuardFightMaxEngageDist':   'gatherGuardFightMaxEngageDist',
+};
+
+let _neuralDirty = false;
+
+function _updateNeuralDirty() {
+  const btn = document.getElementById('btn-save-neural');
+  const dot = document.getElementById('neural-unsaved-dot');
+  if (_neuralDirty) {
+    if (btn) { btn.classList.add('neural-unsaved'); btn.textContent = 'SAVE'; }
+    if (dot) dot.classList.add('visible');
+  } else {
+    if (btn) { btn.classList.remove('neural-unsaved'); btn.textContent = 'SAVE'; }
+    if (dot) dot.classList.remove('visible');
+  }
+}
+
+function initNeuralDirtyTracking() {
+  Object.keys(NEURAL_ID_MAP).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => {
+      _neuralDirty = true;
+      _updateNeuralDirty();
+    });
+  });
+}
+
+function resetNeuralDefaults() {
+  Object.entries(NEURAL_ID_MAP).forEach(([elId, key]) => {
+    const el = document.getElementById(elId);
+    if (el) el.value = NEURAL_DEFAULTS[key];
+  });
+  // sync preset cards — BALANCED = defaults
+  document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+  const balancedCard = document.getElementById('preset-balanced');
+  if (balancedCard) balancedCard.classList.add('active');
+  // sync tuning sliders
+  _syncTuningFromAdvanced();
+  _neuralDirty = true;
+  _updateNeuralDirty();
+}
+
+async function saveNeuralConfig() {
+  if (!_config) { errLog('CONFIG NOT LOADED'); return; }
+  const nGetNum = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return undefined;
+    const v = parseFloat(el.value);
+    return Number.isFinite(v) ? v : undefined;
+  };
+  _config.neural = {};
+  Object.entries(NEURAL_ID_MAP).forEach(([elId, key]) => {
+    _config.neural[key] = nGetNum(elId);
+  });
+  const r = await launcher.saveConfig(_config);
+  const btn = document.getElementById('btn-save-neural');
+  if (r.ok) {
+    _neuralDirty = false;
+    _updateNeuralDirty();
+    sysLog('[ OK ] Neural config saved.');
+  } else {
+    if (btn) { btn.textContent = 'ERROR'; setTimeout(() => _updateNeuralDirty(), 2000); }
+    errLog('[ ERR ] ' + r.error);
+  }
+}
+
+// ────────────────────────────────────────────
 //  Update
 // ────────────────────────────────────────────
 let _updateInfo = null;
@@ -1158,7 +1591,7 @@ async function checkUpdate() {
     box.textContent = `NEW VERSION AVAILABLE: ${current} → ${r.version}`;
     document.getElementById('btn-dl').style.display = '';
     // Also show bot update row in the launcher update banner if it's visible
-    showBotUpdateInBanner(current, r.version);
+    showBotUpdateInBanner(current, r.version, r.htmlUrl);
   } else {
     box.className = 'update-state up-to-date';
     box.textContent = `UP TO DATE — v${current}`;
@@ -1221,7 +1654,7 @@ function semverGt(a, b) {
 // ────────────────────────────────────────────
 //  Launcher Update Check
 // ────────────────────────────────────────────
-const LAUNCHER_VERSION = '3.0.6';
+const LAUNCHER_VERSION = '3.0.7';
 
 async function checkLauncherUpdate() {
   try {
@@ -1259,17 +1692,22 @@ function showLauncherUpdate(version, url) {
   if (_updateInfo && _config) {
     const current = _config.bot_version || _config.version || '0.0.0';
     if (semverGt(_updateInfo.version, current)) {
-      showBotUpdateInBanner(current, _updateInfo.version);
+      showBotUpdateInBanner(current, _updateInfo.version, _updateInfo.htmlUrl);
     }
   }
 }
 
-function showBotUpdateInBanner(oldVer, newVer) {
+function showBotUpdateInBanner(oldVer, newVer, url) {
   const row = document.getElementById('bot-update-row');
   const verEl = document.getElementById('bot-new-version');
+  const linkEl = document.getElementById('bot-update-link');
   const banner = document.getElementById('launcher-update-banner');
   if (!row) return;
   if (verEl) verEl.textContent = oldVer + ' → v' + newVer;
+  if (linkEl) {
+    if (url) { linkEl.href = url; linkEl.style.display = ''; }
+    else linkEl.style.display = 'none';
+  }
   row.style.display = 'flex';
   // Show banner if not already visible
   if (banner && banner.style.display === 'none') banner.style.display = 'flex';
@@ -1278,6 +1716,59 @@ function showBotUpdateInBanner(oldVer, newVer) {
 function dismissLauncherUpdate() {
   const banner = document.getElementById('launcher-update-banner');
   if (banner) banner.style.display = 'none';
+}
+
+async function installBotUpdateInline() {
+  if (!_updateInfo?.downloadUrl) {
+    // Fallback — switch to update tab
+    switchTab(document.querySelector('[data-tab=update]'));
+    dismissLauncherUpdate();
+    return;
+  }
+
+  const botRow = document.getElementById('bot-update-row');
+  const progressRow = document.getElementById('bot-banner-progress');
+  const bar = document.getElementById('bot-banner-bar');
+  const pct = document.getElementById('bot-banner-pct');
+  const btn = document.getElementById('bot-install-btn');
+
+  if (btn) btn.disabled = true;
+  if (botRow) botRow.style.display = 'none';
+  if (progressRow) progressRow.style.display = 'flex';
+
+  launcher.on('update-progress', ({ pct: p }) => {
+    const safe = Math.min(100, Math.round(p || 0));
+    if (bar) bar.style.width = safe + '%';
+    if (pct) pct.textContent = safe + '%';
+  });
+
+  try {
+    const r = await launcher.downloadUpdate({ url: _updateInfo.downloadUrl, fileSize: _updateInfo.fileSize });
+    launcher.removeAllListeners('update-progress');
+
+    if (r.ok) {
+      if (pct) pct.textContent = '100%';
+      if (bar) bar.style.width = '100%';
+      if (_config) {
+        const oldVer = _config.bot_version || '—';
+        _config.bot_version = _updateInfo.version;
+        await launcher.saveConfig(_config);
+        showRestartModal(oldVer, _updateInfo.version);
+      }
+      dismissLauncherUpdate();
+    } else {
+      errLog('[BOT UPDATE] Failed: ' + r.error);
+      if (progressRow) progressRow.style.display = 'none';
+      if (botRow) botRow.style.display = 'flex';
+      if (btn) btn.disabled = false;
+    }
+  } catch (e) {
+    launcher.removeAllListeners('update-progress');
+    errLog('[BOT UPDATE] Error: ' + e.message);
+    if (progressRow) progressRow.style.display = 'none';
+    if (botRow) botRow.style.display = 'flex';
+    if (btn) btn.disabled = false;
+  }
 }
 
 let _downloadProgressCleanup = null;
@@ -1759,8 +2250,12 @@ async function checkBotExists() {
 // ────────────────────────────────────────────
 (async () => {
   await loadConfigUI();
+  initNeuralDirtyTracking();
+  _syncTuningFromAdvanced();
+  ['aggression','survival','gather','mobility'].forEach(id => _updateTuningFill(id, Number(document.getElementById('tuning-' + id)?.value || 5)));
   const s = await launcher.botStatus();
   setBotRunning(s.running);
+  _syncCoreAccordion(document.querySelector('.nav-item.active')?.dataset?.tab || '');
   
   // Initialize diagnostics to OFFLINE
   updateDiagScores({ threatScore: 0, survivalScore: 0, resourceScore: 0, status: 'OFFLINE' });

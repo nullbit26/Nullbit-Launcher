@@ -19,17 +19,14 @@ contextBridge.exposeInMainWorld('launcher', {
   stopBot:    ()       => ipcRenderer.invoke('bot-stop'),
   botStatus:  ()       => ipcRenderer.invoke('bot-status'),
 
-  // Update
+  // Update (bot)
   checkUpdate:    ()        => ipcRenderer.invoke('update-check'),
   downloadUpdate: (info)    => ipcRenderer.invoke('update-download', info),
 
-  // Launcher update (NSIS autoUpdater)
-  checkLauncherUpdate: () => ipcRenderer.invoke('launcher-update-check'),
-  downloadLauncherUpdate: () => ipcRenderer.invoke('launcher-update-download'),
-  installLauncherUpdate: () => ipcRenderer.invoke('launcher-update-install'),
-  nsisCheckUpdate: () => ipcRenderer.invoke('nsis-check-update'),
+  // Launcher update (NSIS electron-updater only)
+  nsisCheckUpdate:    () => ipcRenderer.invoke('nsis-check-update'),
   nsisDownloadUpdate: () => ipcRenderer.invoke('nsis-download-update'),
-  nsisInstallUpdate: () => ipcRenderer.invoke('nsis-install-update'),
+  nsisInstallUpdate:  () => ipcRenderer.invoke('nsis-install-update'),
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   onAutoUpdateAvailable: (cb) => ipcRenderer.on('auto-update-available', (_e, d) => cb(d)),
   onAutoUpdateProgress: (cb) => ipcRenderer.on('auto-update-progress', (_e, d) => cb(d)),
@@ -47,7 +44,6 @@ contextBridge.exposeInMainWorld('launcher', {
   onBotLog:         (cb) => ipcRenderer.on('bot-log',         (_e, d) => cb(d)),
   onBotStatus:      (cb) => ipcRenderer.on('bot-status',      (_e, d) => cb(d)),
   onUpdateProgress: (cb) => ipcRenderer.on('update-progress', (_e, d) => cb(d)),
-  onLauncherDownloadProgress: (cb) => ipcRenderer.on('launcher-download-progress', (_e, d) => cb(d)),
 
   // Cleanup
   removeAllListeners: (ch) => ipcRenderer.removeAllListeners(ch),

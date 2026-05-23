@@ -422,7 +422,7 @@ ipcMain.handle('update-download', async (_event, { url, fileSize }) => {
 });
 
 // ────────────────────────────────────────────
-//  Launcher Update Check
+//  Launcher Update Check (NSIS only — handled by electron-updater)
 // ────────────────────────────────────────────
 
 // Simple semver gt: returns true if a > b
@@ -437,55 +437,13 @@ function semverGt(a, b) {
   return false;
 }
 
-const LAUNCHER_UPDATE_URL = 'https://api.github.com/repos/nullbit26/Nullbit-Launcher/releases/latest';
-let _launcherUpdateInfo = null; // Store for auto-install
 
-ipcMain.handle('launcher-update-check', async () => {
-  try {
-    const d = await fetchJson(LAUNCHER_UPDATE_URL);
-    if (!d?.tag_name) return { error: 'INVALID_RESPONSE' };
-    const latestVersion = d.tag_name.replace(/^v/, '');
-    const currentVersion = app.getVersion();
-    
-    console.log('[UPDATER] Current version:', currentVersion);
-    console.log('[UPDATER] Latest version from GitHub:', latestVersion);
-
-    // Check if update needed
-    const hasUpdate = semverGt(latestVersion, currentVersion);
-    console.log('[UPDATER] Has update:', hasUpdate);
-
-    // Find the .exe asset URL for auto-download
-    const exeAsset = d.assets?.find(a => a.name.endsWith('.exe'));
-    _launcherUpdateInfo = {
-      version: latestVersion,
-      tagName: d.tag_name,
-      htmlUrl: d.html_url,
-      downloadUrl: exeAsset?.browser_download_url || null,
-      body: d.body,
-    };
-
-    if (!hasUpdate) {
-      return { upToDate: true, currentVersion, latestVersion };
-    }
-
-    return {
-      version: latestVersion,
-      tagName: d.tag_name,
-      htmlUrl: d.html_url,
-      body: d.body,
-      hasUpdate: true,
-    };
-  } catch (e) {
-    console.error('[UPDATER] Check failed:', e.message);
-    // 404 = repo not found or private, don't show error to user
-    if (e.response?.status === 404) {
-      return { upToDate: true };
-    }
-    return { error: e.message };
-  }
+// REMOVED: launcher-update-download (portable)
+ipcMain.handle('launcher-update-download', async () => {
+  return { error: 'PORTABLE_UPDATER_REMOVED' };
 });
 
-// Helper to download with redirect following
+// Helper to download with redirect following (used for bot update only)
 function downloadFile(url, destPath, onProgress, maxRedirects = 5) {
   return new Promise((resolve, reject) => {
     if (maxRedirects <= 0) {
@@ -543,146 +501,15 @@ function downloadFile(url, destPath, onProgress, maxRedirects = 5) {
   });
 }
 
-ipcMain.handle('launcher-update-download', async () => {
-  try {
-    if (!_launcherUpdateInfo?.downloadUrl) {
-      return { error: 'NO_DOWNLOAD_URL' };
-    }
 
-    const tempPath = path.join(app.getPath('temp'), 'NULLBIT-Launcher-new.exe');
-    const url = _launcherUpdateInfo.downloadUrl;
-
-    await downloadFile(url, tempPath, (percent) => {
-      if (mainWindow) {
-        mainWindow.webContents.send('launcher-download-progress', percent);
-      }
-    });
-
-    _launcherUpdateInfo.tempPath = tempPath;
-    return { ok: true, path: tempPath };
-  } catch (e) {
-    return { error: e.message };
-  }
-});
-
-ipcMain.handle('launcher-update-install', async () => {
-  try {
-    if (!_launcherUpdateInfo?.tempPath) {
-      return { error: 'NO_DOWNLOADED_FILE' };
-    }
-
-    // IMPORTANT: In portable mode, process.execPath points to the exe itself
-    // But we need to be explicit about which file to replace
-    const exeName = path.basename(process.execPath);
-    const currentExe = path.join(EXE_DIR, exeName);
-    const newExe = _launcherUpdateInfo.tempPath;
-    
-    console.log('[UPDATER] EXE_DIR:', EXE_DIR);
-    console.log('[UPDATER] process.execPath:', process.execPath);
-    console.log('[UPDATER] Current exe (calculated):', currentExe);
-    console.log('[UPDATER] New exe:', newExe);
-    console.log('[UPDATER] Is packaged:', app.isPackaged);
-    console.log('[UPDATER] PORTABLE_EXECUTABLE_DIR:', process.env.PORTABLE_EXECUTABLE_DIR);
-
-    // Verify downloaded file exists
-    if (!fs.existsSync(newExe)) {
-      console.error('[UPDATER] New exe not found:', newExe);
-      return { error: 'DOWNLOADED_FILE_MISSING' };
-    }
-    console.log('[UPDATER] Verified new exe exists, size:', fs.statSync(newExe).size);
-
-    // Use standalone updater.js - the professional approach
-    // Try multiple locations for portable mode
-    let standaloneUpdater = path.join(CORE_DIR, 'updater.js');
-    
-    // Fallback locations
-    const possiblePaths = [
-      standaloneUpdater,
-      path.join(__dirname, 'updater.js'),  // Same dir as main.js
-      path.join(__dirname, '..', 'updater.js'),  // Parent of core (app root)
-      path.join(path.dirname(process.argv[0]), 'resources', 'app', 'updater.js'),
-      path.join(path.dirname(process.argv[0]), 'resources', 'app', 'core', 'updater.js'),
-      path.join(path.dirname(process.execPath), 'resources', 'app', 'updater.js'),
-    ];
-    
-    for (const p of possiblePaths) {
-      if (fs.existsSync(p)) {
-        standaloneUpdater = p;
-        console.log('[UPDATER] Found updater.js at:', p);
-        break;
-      }
-    }
-    
-    // Verify updater.js exists
-    if (!fs.existsSync(standaloneUpdater)) {
-      console.error('[UPDATER] updater.js not found. Tried:', possiblePaths);
-      return { error: 'UPDATER_SCRIPT_MISSING' };
-    }
-    
-    const parentPid = process.pid;
-    // CRITICAL: In portable mode, process.argv[0] is the actual exe path
-    // process.execPath may point to electron internals
-    const nodePath = process.argv[0];
-    
-    console.log('[UPDATER] Spawning standalone updater...');
-    console.log('[UPDATER] Parent PID:', parentPid);
-    console.log('[UPDATER] Node (argv[0]):', nodePath);
-    console.log('[UPDATER] Updater:', standaloneUpdater);
-    console.log('[UPDATER] Arguments:', [parentPid.toString(), currentExe, newExe]);
-    
-    // Write debug info before spawn
-    const debugInfo = {
-      nodePath, standaloneUpdater, parentPid, currentExe, newExe,
-      cwd: process.cwd(), argv: process.argv, execPath: process.execPath
-    };
-    fs.writeFileSync(
-      path.join(app.getPath('temp'), 'nullbit-spawn-debug.json'),
-      JSON.stringify(debugInfo, null, 2)
-    );
-    
-    // Spawn updater as completely detached process
-    const updaterProc = require('child_process').spawn(
-      nodePath,
-      [standaloneUpdater, parentPid.toString(), currentExe, newExe],
-      {
-        detached: true,
-        stdio: ['ignore', 'ignore', 'ignore'],
-        windowsHide: false  // Show window for debugging
-      }
-    );
-    
-    if (!updaterProc.pid) {
-      console.error('[UPDATER] Failed to spawn updater!');
-      return { error: 'UPDATER_SPAWN_FAILED' };
-    }
-    
-    console.log('[UPDATER] Updater spawned with PID:', updaterProc.pid);
-    
-    // Completely detach
-    updaterProc.unref();
-    
-    // CRITICAL: Exit immediately so updater can do its job
-    console.log('[UPDATER] EXITING NOW - updater will handle the rest');
-    
-    // Hard exit - no delays, no cleanup that might hang
-    process.exit(0);
-    
-    return { ok: true };
-  } catch (e) {
-    console.error('[UPDATER] Install error:', e);
-    return { error: e.message };
-  }
-});
+// REMOVED: launcher-update-install (portable)
 
 // ────────────────────────────────────────────
 //  NSIS Auto-Updater (for installed version)
 // ────────────────────────────────────────────
 
-// Check for updates using electron-updater (NSIS builds only)
+// Check for updates using electron-updater
 ipcMain.handle('nsis-check-update', async () => {
-  if (process.env.PORTABLE_EXECUTABLE_DIR) {
-    return { portable: true, message: 'Portable mode uses manual update' };
-  }
   try {
     const result = await autoUpdater.checkForUpdates();
     return { 
@@ -709,6 +536,10 @@ ipcMain.handle('nsis-download-update', async () => {
 ipcMain.handle('nsis-install-update', async () => {
   try {
     console.log('[AUTO-UPDATE] quitAndInstall called');
+    // Force close all windows first so NSIS can replace the running exe
+    isQuitting = true;
+    if (mainWindow) { mainWindow.destroy(); mainWindow = null; }
+    if (splashWindow) { splashWindow.destroy(); splashWindow = null; }
     autoUpdater.quitAndInstall(false, true);
     return { ok: true };
   } catch (e) {

@@ -9,6 +9,23 @@
 <body>
 <div class="vignette"></div>
 <div id="toast-container"></div>
+
+<!-- ── NEURAL UNSAVED MODAL ── -->
+<div id="neural-guard-overlay" class="neural-guard-overlay" style="display:none">
+  <div class="neural-guard-modal">
+    <div class="ngm-header">
+      <span class="ngm-tag">[ NEURAL ]</span>
+      <span class="ngm-title">UNSAVED CHANGES</span>
+    </div>
+    <div class="ngm-scanline"></div>
+    <p class="ngm-body">You have unsaved changes in Neural Config.<br>Save before leaving?</p>
+    <div class="ngm-actions">
+      <button class="ngm-btn ngm-btn-save" id="ngm-save-btn">⬡ SAVE &amp; CONTINUE</button>
+      <button class="ngm-btn ngm-btn-discard" id="ngm-discard-btn">✖ DISCARD</button>
+    </div>
+    <div class="ngm-footer">NULLBIT NEURAL CONFIG — v<span id="ngm-version"></span></div>
+  </div>
+</div>
 <div class="scanlines"></div>
 <div class="glitch-flash" id="glitch-flash">
   <div class="g-crack"><span id="g-crack-text"></span></div>
@@ -36,23 +53,35 @@
 <div class="update-banner" id="launcher-update-banner" style="display:none">
   <!-- Normal State -->
   <div class="update-banner-content" id="update-normal-content">
-    <div class="update-banner-row">
-      <span class="update-banner-icon">◉</span>
-      <span class="update-banner-text">LAUNCHER UPDATE</span>
+    <!-- Launcher row -->
+    <div class="update-banner-row" id="launcher-update-row">
+      <span class="update-banner-label">LAUNCHER</span>
       <span class="update-banner-version" id="launcher-new-version"></span>
-      <button class="update-banner-btn install" id="launcher-install-btn" onclick="installLauncherUpdate()">INSTALL</button>
-      <a class="update-banner-link" id="launcher-update-link" href="#" target="_blank">VIEW ON GITHUB ↗</a>
+      <div class="update-banner-actions">
+        <button class="update-banner-btn" id="launcher-install-btn" onclick="installLauncherUpdate()">INSTALL</button>
+        <a class="update-banner-link" id="launcher-update-link" href="#" target="_blank">GITHUB ↗</a>
+      </div>
       <button class="update-banner-close" onclick="dismissLauncherUpdate()">✕</button>
     </div>
-    <!-- Bot update row (shown only when bot update also available) -->
+    <!-- Bot row (shown only when bot update also available) -->
     <div class="update-banner-row update-banner-bot-row" id="bot-update-row" style="display:none">
-      <span class="update-banner-icon">◈</span>
-      <span class="update-banner-text">BOT UPDATE</span>
+      <span class="update-banner-label">BOT</span>
       <span class="update-banner-version" id="bot-new-version"></span>
-      <button class="update-banner-btn" onclick="switchTab(document.querySelector('[data-tab=update]')); dismissLauncherUpdate();">DOWNLOAD</button>
+      <div class="update-banner-actions">
+        <button class="update-banner-btn" id="bot-install-btn" onclick="installBotUpdateInline()">INSTALL</button>
+        <a class="update-banner-link" id="bot-update-link" href="#" target="_blank">GITHUB ↗</a>
+      </div>
+    </div>
+    <!-- Bot inline progress (shown during bot download) -->
+    <div class="update-banner-row update-banner-bot-progress" id="bot-banner-progress" style="display:none">
+      <span class="update-banner-label">BOT</span>
+      <div class="update-banner-progress-wrap">
+        <div class="update-banner-progress-bar" id="bot-banner-bar" style="width:0%"></div>
+      </div>
+      <span class="update-banner-pct" id="bot-banner-pct">0%</span>
     </div>
   </div>
-  <!-- Cyberpunk Download State -->
+  <!-- Launcher Cyberpunk Download State -->
   <div class="update-download-state" id="update-download-state" style="display:none">
     <div class="cyber-loading-text" id="cyber-loading-text">INITIALIZING UPLOAD</div>
     <div class="cyber-progress-wrap">
@@ -167,8 +196,16 @@
     <div class="nav-item active" data-tab="dashboard" onclick="switchTab(this)">
       <span class="nav-icon">◈</span><span>DASHBOARD</span>
     </div>
-    <div class="nav-item" data-tab="config" onclick="switchTab(this)">
-      <span class="nav-icon">◇</span><span>CORE ACCESS</span>
+    <div class="nav-group" id="nav-group-core">
+      <div class="nav-item nav-group-header" data-tab="config" onclick="switchTab(this)">
+        <span class="nav-icon">◇</span><span>CORE ACCESS</span>
+        <span class="nav-arrow" id="nav-arrow-core">›</span>
+      </div>
+      <div class="nav-group-children" id="nav-group-children-core">
+        <div class="nav-item nav-sub" data-tab="neural" onclick="switchTab(this)">
+          <span class="nav-icon">⬡</span><span>NEURAL</span><span class="nav-unsaved-dot" id="neural-unsaved-dot"></span>
+        </div>
+      </div>
     </div>
     <div class="nav-item" data-tab="system" onclick="switchTab(this)">
       <span class="nav-icon">⚙</span><span>SYSTEM</span>
@@ -337,8 +374,8 @@
           <div class="cfg-row">
             <label>Auth</label>
             <select class="cfg-input" id="cfg-auth">
-              <option value="offline">offline (cracked)</option>
-              <option value="microsoft">microsoft (Mojang)</option>
+              <option value="offline">offline (no auth)</option>
+              <option value="microsoft">microsoft (premium)</option>
             </select>
           </div>
         </div>
@@ -374,6 +411,316 @@
       </div>
 
       <div id="cfg-status" class="cfg-status"></div>
+    </section>
+
+    <!-- ─── TAB: NEURAL ─── -->
+    <section class="tab" id="tab-neural">
+      <div class="section-header">
+        <span class="header-tag">[ NEURAL ]</span> NEURAL CONFIG
+        <button class="btn-save btn-reset-neural" onclick="resetNeuralDefaults()">RESET</button>
+        <button class="btn-save" id="btn-save-neural" onclick="saveNeuralConfig()">SAVE</button>
+      </div>
+
+      <!-- NEURAL MODE TABS -->
+      <div class="neural-mode-tabs">
+        <button class="nmt-btn active" id="nmt-presets" onclick="switchNeuralMode('presets', this)">PRESETS</button>
+        <button class="nmt-btn" id="nmt-tuning" onclick="switchNeuralMode('tuning', this)">TUNING</button>
+        <button class="nmt-btn" id="nmt-advanced" onclick="switchNeuralMode('advanced', this)">ADVANCED</button>
+      </div>
+
+      <!-- ── PRESETS PANEL ── -->
+      <div class="neural-panel" id="neural-panel-presets">
+        <div class="preset-grid">
+          <div class="preset-card" id="preset-defensive" onclick="applyPreset('defensive')">
+            <div class="preset-icon">
+              <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 4 L28 9 L28 17 C28 23 22 28 16 30 C10 28 4 23 4 17 L4 9 Z"/>
+                <polyline points="11,16 14,19 21,13"/>
+              </svg>
+            </div>
+            <div class="preset-name">DEFENSIVE</div>
+            <div class="preset-desc">High flee threshold.<br>Avoids combat, prioritizes survival.</div>
+            <div class="preset-tag">[ SAFE ]</div>
+          </div>
+          <div class="preset-card active" id="preset-balanced" onclick="applyPreset('balanced')">
+            <div class="preset-icon">
+              <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="16" y1="5" x2="16" y2="27"/>
+                <line x1="8" y1="9" x2="24" y2="9"/>
+                <path d="M6 9 L2 18 C2 21 5 23 8 23 C11 23 14 21 14 18 Z"/>
+                <path d="M26 9 L30 18 C30 21 27 23 24 23 C21 23 18 21 18 18 Z"/>
+                <line x1="12" y1="27" x2="20" y2="27"/>
+              </svg>
+            </div>
+            <div class="preset-name">BALANCED</div>
+            <div class="preset-desc">Default parameters.<br>Fights when able, flees when needed.</div>
+            <div class="preset-tag">[ DEFAULT ]</div>
+          </div>
+          <div class="preset-card" id="preset-aggressive" onclick="applyPreset('aggressive')">
+            <div class="preset-icon">
+              <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20,3 12,16 18,16 12,29"/>
+              </svg>
+            </div>
+            <div class="preset-name">AGGRESSIVE</div>
+            <div class="preset-desc">Low flee threshold.<br>Engages threats, high combat priority.</div>
+            <div class="preset-tag">[ COMBAT ]</div>
+          </div>
+          <div class="preset-card" id="preset-ghost" onclick="applyPreset('ghost')">
+            <div class="preset-icon">
+              <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 28 L8 13 C8 8 11 4 16 4 C21 4 24 8 24 13 L24 28 L21 25 L18 28 L15 25 L12 28 L9 25 Z"/>
+                <circle cx="13" cy="14" r="1.5"/>
+                <circle cx="19" cy="14" r="1.5"/>
+              </svg>
+            </div>
+            <div class="preset-name">GHOST</div>
+            <div class="preset-desc">Maximum evasion.<br>Flees immediately, focus on gathering.</div>
+            <div class="preset-tag">[ STEALTH ]</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TUNING PANEL ── -->
+      <div class="neural-panel" id="neural-panel-tuning" style="display:none">
+        <div class="tuning-list">
+
+          <div class="tuning-row">
+            <div class="tuning-header">
+              <span class="tuning-name">AGGRESSION</span>
+              <span class="tuning-desc">Combat engagement intensity</span>
+              <span class="tuning-val" id="tuning-val-aggression">5</span>
+            </div>
+            <div class="tuning-track-wrap">
+              <span class="tuning-label-l">PASSIVE</span>
+              <div class="tuning-track">
+                <input class="tuning-range" type="range" id="tuning-aggression" min="1" max="10" step="1" value="5" oninput="onTuningChange('aggression', this.value)">
+                <div class="tuning-fill" id="tuning-fill-aggression"></div>
+              </div>
+              <span class="tuning-label-r">AGGRESSIVE</span>
+            </div>
+          </div>
+
+          <div class="tuning-row">
+            <div class="tuning-header">
+              <span class="tuning-name">SURVIVAL</span>
+              <span class="tuning-desc">Flee sensitivity and self-preservation</span>
+              <span class="tuning-val" id="tuning-val-survival">5</span>
+            </div>
+            <div class="tuning-track-wrap">
+              <span class="tuning-label-l">CAUTIOUS</span>
+              <div class="tuning-track">
+                <input class="tuning-range" type="range" id="tuning-survival" min="1" max="10" step="1" value="5" oninput="onTuningChange('survival', this.value)">
+                <div class="tuning-fill" id="tuning-fill-survival"></div>
+              </div>
+              <span class="tuning-label-r">RECKLESS</span>
+            </div>
+          </div>
+
+          <div class="tuning-row">
+            <div class="tuning-header">
+              <span class="tuning-name">GATHER SAFETY</span>
+              <span class="tuning-desc">Threat response during resource gathering</span>
+              <span class="tuning-val" id="tuning-val-gather">5</span>
+            </div>
+            <div class="tuning-track-wrap">
+              <span class="tuning-label-l">CAREFUL</span>
+              <div class="tuning-track">
+                <input class="tuning-range" type="range" id="tuning-gather" min="1" max="10" step="1" value="5" oninput="onTuningChange('gather', this.value)">
+                <div class="tuning-fill" id="tuning-fill-gather"></div>
+              </div>
+              <span class="tuning-label-r">BOLD</span>
+            </div>
+          </div>
+
+          <div class="tuning-row">
+            <div class="tuning-header">
+              <span class="tuning-name">MOBILITY</span>
+              <span class="tuning-desc">Pathfinding thoroughness vs speed</span>
+              <span class="tuning-val" id="tuning-val-mobility">5</span>
+            </div>
+            <div class="tuning-track-wrap">
+              <span class="tuning-label-l">FAST</span>
+              <div class="tuning-track">
+                <input class="tuning-range" type="range" id="tuning-mobility" min="1" max="10" step="1" value="5" oninput="onTuningChange('mobility', this.value)">
+                <div class="tuning-fill" id="tuning-fill-mobility"></div>
+              </div>
+              <span class="tuning-label-r">THOROUGH</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── ADVANCED PANEL ── -->
+      <div class="neural-panel" id="neural-panel-advanced" style="display:none">
+
+      <!-- COMBAT FLEE -->
+      <div class="neural-group">
+        <div class="neural-group-title">COMBAT FLEE</div>
+        <div class="neural-row">
+          <label class="neural-label">CRITICAL HP<span class="neural-hint">бежим если HP ≤</span></label>
+          <input class="neural-input" type="number" id="n-combatFleeCriticalHp" min="1" max="20" step="1">
+          <span class="neural-default">default: 6</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">SAFE HP<span class="neural-hint">возврат в бой если HP ≥</span></label>
+          <input class="neural-input" type="number" id="n-combatFleeSafeHp" min="1" max="20" step="1">
+          <span class="neural-default">default: 12</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">RETREAT THRESHOLD<span class="neural-hint">порог риска для бегства</span></label>
+          <input class="neural-input" type="number" id="n-combatFleeRetreatScoreThreshold" min="0.4" max="4" step="0.1">
+          <span class="neural-default">default: 2.5</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">FLEE DISTANCE<span class="neural-hint">блоков отступить</span></label>
+          <input class="neural-input" type="number" id="n-combatFleeNavDistance" min="5" max="40" step="1">
+          <span class="neural-default">default: 10</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">DANGER RADIUS<span class="neural-hint">дистанция немедленной угрозы</span></label>
+          <input class="neural-input" type="number" id="n-combatFleeImmediateDangerBlocks" min="4" max="20" step="1">
+          <span class="neural-default">default: 11</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">HP WEIGHT<span class="neural-hint">вес HP в retreat score</span></label>
+          <input class="neural-input" type="number" id="n-combatFleeRetreatHpWeight" min="0.2" max="3" step="0.1">
+          <span class="neural-default">default: 1.0</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">PRESSURE WEIGHT<span class="neural-hint">вес давления толпы</span></label>
+          <input class="neural-input" type="number" id="n-combatFleeRetreatPressureWeight" min="0.2" max="3" step="0.1">
+          <span class="neural-default">default: 0.58</span>
+        </div>
+      </div>
+
+      <!-- PVP -->
+      <div class="neural-group">
+        <div class="neural-group-title">PVP</div>
+        <div class="neural-row">
+          <label class="neural-label">ATTACK COOLDOWN<span class="neural-hint">мс между атаками</span></label>
+          <input class="neural-input" type="number" id="n-pvpAttackCooldown" min="400" max="1000" step="50">
+          <span class="neural-default">default: 600</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">IDEAL DISTANCE<span class="neural-hint">дистанция меча (блоки)</span></label>
+          <input class="neural-input" type="number" id="n-pvpIdealDistance" min="2" max="4" step="0.1">
+          <span class="neural-default">default: 2.9</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">KITE HP<span class="neural-hint">HP для перехода в кайт</span></label>
+          <input class="neural-input" type="number" id="n-pvpKiteHpThreshold" min="2" max="14" step="1">
+          <span class="neural-default">default: 8</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">ENGAGE SAFE HP<span class="neural-hint">HP для агрессивной атаки</span></label>
+          <input class="neural-input" type="number" id="n-pvpEngageSafeHp" min="10" max="20" step="1">
+          <span class="neural-default">default: 15</span>
+        </div>
+      </div>
+
+      <!-- NAVIGATION -->
+      <div class="neural-group">
+        <div class="neural-group-title">NAVIGATION</div>
+        <div class="neural-row">
+          <label class="neural-label">PATH THINK TIMEOUT<span class="neural-hint">мс на расчёт A*</span></label>
+          <input class="neural-input" type="number" id="n-pathThinkTimeoutMs" min="5000" max="60000" step="1000">
+          <span class="neural-default">default: 24000</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">STUCK CHECK TICKS<span class="neural-hint">тиков до detect застревания</span></label>
+          <input class="neural-input" type="number" id="n-stuckCheckTicks" min="5" max="30" step="1">
+          <span class="neural-default">default: 11</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">FOLLOW DISTANCE<span class="neural-hint">дистанция следования (блоки)</span></label>
+          <input class="neural-input" type="number" id="n-followDistance" min="1" max="10" step="1">
+          <span class="neural-default">default: 3</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">GUARD MOB DISTANCE<span class="neural-hint">радиус охраны от мобов</span></label>
+          <input class="neural-input" type="number" id="n-guardMobDistance" min="4" max="20" step="1">
+          <span class="neural-default">default: 10</span>
+        </div>
+      </div>
+
+      <!-- MINING -->
+      <div class="neural-group">
+        <div class="neural-group-title">MINING</div>
+        <div class="neural-row">
+          <label class="neural-label">BRANCH LENGTH<span class="neural-hint">длина тоннеля (блоки)</span></label>
+          <input class="neural-input" type="number" id="n-branchLength" min="8" max="64" step="4">
+          <span class="neural-default">default: 32</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">MAX BRANCHES<span class="neural-hint">веток за сессию</span></label>
+          <input class="neural-input" type="number" id="n-maxBranches" min="1" max="20" step="1">
+          <span class="neural-default">default: 8</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">ORE SCAN RADIUS<span class="neural-hint">радиус поиска руды (блоки)</span></label>
+          <input class="neural-input" type="number" id="n-oreScanRadius" min="2" max="12" step="1">
+          <span class="neural-default">default: 6</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">TORCH INTERVAL<span class="neural-hint">шагов между факелами</span></label>
+          <input class="neural-input" type="number" id="n-torchInterval" min="4" max="20" step="1">
+          <span class="neural-default">default: 8</span>
+        </div>
+      </div>
+
+      <!-- SURVIVAL / GATHER -->
+      <div class="neural-group">
+        <div class="neural-group-title">SURVIVAL / GATHER</div>
+        <div class="neural-row">
+          <label class="neural-label">SURVIVAL THREATS<span class="neural-hint">угроз для немедленного FLEE при добыче</span></label>
+          <input class="neural-input" type="number" id="n-gatherGuardSurvivalThreatCount" min="2" max="8" step="1">
+          <span class="neural-default">default: 3</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">SURVIVAL LOW HP<span class="neural-hint">HP для немедленного FLEE при добыче</span></label>
+          <input class="neural-input" type="number" id="n-gatherGuardSurvivalLowHp" min="2" max="16" step="1">
+          <span class="neural-default">default: 8</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">FIGHT MAX THREATS<span class="neural-hint">макс. угроз чтобы вступить в бой</span></label>
+          <input class="neural-input" type="number" id="n-gatherGuardFightMaxThreats" min="1" max="5" step="1">
+          <span class="neural-default">default: 2</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">FIGHT MIN HP<span class="neural-hint">мин. HP ratio для боя (0.3–1.0)</span></label>
+          <input class="neural-input" type="number" id="n-gatherGuardFightMinHpRatio" min="0.3" max="1" step="0.05">
+          <span class="neural-default">default: 0.6</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">FIGHT ENGAGE DIST<span class="neural-hint">макс. дистанция для атаки при добыче</span></label>
+          <input class="neural-input" type="number" id="n-gatherGuardFightMaxEngageDist" min="6" max="24" step="1">
+          <span class="neural-default">default: 12</span>
+        </div>
+      </div>
+
+      <!-- AI -->
+      <div class="neural-group">
+        <div class="neural-group-title">AI</div>
+        <div class="neural-row">
+          <label class="neural-label">AI COOLDOWN<span class="neural-hint">мс между запросами ИИ</span></label>
+          <input class="neural-input" type="number" id="n-aiCooldownMs" min="1000" max="15000" step="500">
+          <span class="neural-default">default: 4000</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">AI TIMEOUT<span class="neural-hint">мс таймаут ответа ИИ</span></label>
+          <input class="neural-input" type="number" id="n-aiTimeoutMs" min="3000" max="30000" step="1000">
+          <span class="neural-default">default: 12000</span>
+        </div>
+        <div class="neural-row">
+          <label class="neural-label">THREAD RESET<span class="neural-hint">сброс треда после N ответов (0=нет)</span></label>
+          <input class="neural-input" type="number" id="n-openAiThreadResetAfterMessages" min="0" max="100" step="5">
+          <span class="neural-default">default: 0</span>
+        </div>
+      </div>
+
+      </div><!-- /neural-panel-advanced -->
     </section>
 
     <!-- ─── TAB: SYSTEM ─── -->

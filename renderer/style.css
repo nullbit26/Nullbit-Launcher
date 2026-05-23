@@ -372,6 +372,47 @@ input, textarea {
   position: relative;
   animation: cyberGlitch 5s infinite;
 }
+.update-banner-label {
+  color: #000;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  min-width: 64px;
+  font-family: var(--font);
+}
+.update-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.update-banner-progress-wrap {
+  flex: 1;
+  height: 4px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0 10px;
+}
+.update-banner-progress-bar {
+  height: 100%;
+  background: #000;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.update-banner-pct {
+  font-size: 11px;
+  font-weight: 700;
+  color: #000;
+  min-width: 32px;
+  text-align: right;
+  font-family: var(--font);
+}
+.update-banner-bot-progress {
+  border-top: 1px solid rgba(0,0,0,0.2);
+  margin-top: 4px;
+  padding-top: 6px;
+}
 
 /* Cyberpunk 2077 style glitch animation — BRIGHT RED GLITCH */
 @keyframes cyberGlitch {
@@ -615,6 +656,84 @@ input, textarea {
   height: calc(100vh - 36px);
 }
 
+/* ── NAV ACCORDION GROUP ── */
+@keyframes nav-children-scan {
+  from { background-position: 0 0; }
+  to   { background-position: 0 100%; }
+}
+@keyframes nav-arrow-spin-open {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(90deg); }
+}
+@keyframes nav-arrow-spin-close {
+  from { transform: rotate(90deg); }
+  to   { transform: rotate(0deg); }
+}
+@keyframes nav-child-reveal {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.nav-group { position: relative; }
+.nav-group-header {
+  position: relative;
+}
+.nav-arrow {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--text-dim);
+  opacity: 0.45;
+  transition: color 0.2s, opacity 0.2s;
+  display: inline-block;
+  transform: rotate(0deg);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), color 0.2s, opacity 0.2s;
+  line-height: 1;
+  padding-right: 2px;
+}
+.nav-group.open .nav-arrow {
+  transform: rotate(90deg);
+  color: var(--accent);
+  opacity: 0.8;
+}
+.nav-group-children {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.32s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+}
+.nav-group-children::before {
+  content: '';
+  position: absolute;
+  left: 22px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(255,200,0,0.25) 30%, rgba(255,200,0,0.25) 70%, transparent);
+  pointer-events: none;
+}
+.nav-group.open .nav-group-children {
+  max-height: 120px;
+}
+.nav-group.open .nav-item.nav-sub {
+  animation: nav-child-reveal 0.22s ease-out both;
+}
+
+/* ── NAV SUB ITEM ── */
+.nav-item.nav-sub {
+  padding: 5px 16px 5px 32px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  opacity: 0.65;
+  border-left: 2px solid transparent;
+  margin-top: 0;
+}
+.nav-item.nav-sub:hover { opacity: 1; }
+.nav-item.nav-sub.active {
+  opacity: 1;
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--bg3);
+}
+
 /* ── SIDEBAR ── */
 .sidebar {
   width: 170px;
@@ -751,9 +870,10 @@ input, textarea {
 /* ── CONTENT ── */
 .content {
   flex: 1;
-  overflow: visible;
+  overflow: hidden;
   padding: 18px 22px;
   min-width: 0;
+  position: relative;
 }
 .tab { display: none; height: 100%; overflow-y: auto; position: relative; }
 .tab.active { display: block; }
@@ -2597,4 +2717,509 @@ input:checked + .toggle-slider::before {
   color: var(--text-dim);
   letter-spacing: 0.1em;
   text-align: center;
+}
+
+/* ── NEURAL TAB ── */
+#tab-neural {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+#tab-neural.active { display: flex; }
+
+.neural-group {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.neural-group-title {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+.neural-row {
+  display: grid;
+  grid-template-columns: 1fr 90px 90px;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+.neural-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.neural-hint {
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  opacity: 0.6;
+}
+.neural-input {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-family: var(--font);
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 5px 8px;
+  width: 100%;
+  text-align: right;
+  transition: border-color 0.15s;
+}
+.neural-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 6px rgba(255,200,0,0.2);
+}
+.neural-input::-webkit-inner-spin-button { opacity: 0.4; }
+.neural-default {
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  opacity: 0.45;
+  text-align: right;
+}
+
+/* ── NEURAL ICON ANIMATIONS ── */
+@keyframes neural-boot-pulse {
+  0%   { color: #ff0000; text-shadow: 0 0 8px #ff0000, 0 0 24px #ff0000; transform: scale(1.1); }
+  25%  { color: #ff4400; text-shadow: 0 0 16px #ff2200, 0 0 40px #ff0000; transform: scale(1.25); }
+  50%  { color: #ff0000; text-shadow: 0 0 6px #ff0000, 0 0 18px #cc0000; transform: scale(1.1); }
+  75%  { color: #ff3300; text-shadow: 0 0 20px #ff1100, 0 0 50px #ff0000; transform: scale(1.3); }
+  100% { color: #ff0000; text-shadow: 0 0 8px #ff0000, 0 0 24px #ff0000; transform: scale(1.1); }
+}
+@keyframes neural-online-glow {
+  0%, 100% { color: var(--accent); text-shadow: 0 0 4px rgba(255,200,0,0.6); }
+  50%       { color: #ffe44d;      text-shadow: 0 0 10px rgba(255,200,0,0.9), 0 0 20px rgba(255,180,0,0.4); }
+}
+@keyframes neural-offline-fade {
+  0%   { color: #ff0000; text-shadow: 0 0 12px #ff0000; opacity: 1; }
+  100% { color: var(--text-dim); text-shadow: none; opacity: 0.5; }
+}
+.nav-icon.neural-icon-boot {
+  animation: neural-boot-pulse 0.35s ease-in-out infinite;
+  display: inline-block;
+}
+.nav-icon.neural-icon-online {
+  animation: neural-online-glow 2.5s ease-in-out infinite;
+  display: inline-block;
+}
+.nav-icon.neural-icon-offline {
+  animation: neural-offline-fade 1.2s ease-out forwards;
+  display: inline-block;
+}
+
+/* ── NEURAL MODE TABS ── */
+.neural-mode-tabs {
+  display: flex;
+  gap: 2px;
+  margin: 0 0 16px 0;
+  border-bottom: 1px solid rgba(255,200,0,0.12);
+  padding-bottom: 0;
+}
+.nmt-btn {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  padding: 6px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.18s;
+  margin-bottom: -1px;
+  opacity: 0.5;
+}
+.nmt-btn:hover { opacity: 0.8; color: var(--text); }
+.nmt-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  opacity: 1;
+  text-shadow: 0 0 8px rgba(255,200,0,0.4);
+}
+
+/* ── NEURAL PANEL ── */
+.neural-panel {
+  width: 100%;
+  position: relative;
+  z-index: 0;
+}
+
+/* ── PRESETS GRID ── */
+.preset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 4px 0 8px;
+}
+@keyframes preset-select-flash {
+  0%   { box-shadow: 0 0 0 1px var(--accent), 0 0 20px rgba(255,200,0,0.4); }
+  50%  { box-shadow: 0 0 0 2px var(--accent), 0 0 35px rgba(255,200,0,0.6); }
+  100% { box-shadow: 0 0 0 1px var(--accent), 0 0 12px rgba(255,200,0,0.2); }
+}
+.preset-card {
+  background: var(--bg2);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.preset-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,200,0,0.03) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.preset-card:hover { border-color: rgba(255,200,0,0.3); }
+.preset-card:hover::before { opacity: 1; }
+.preset-card.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(255,200,0,0.15);
+  animation: preset-select-flash 0.4s ease-out;
+}
+.preset-card.active::before { opacity: 1; }
+.preset-icon {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 10px;
+  color: var(--text-dim);
+  opacity: 0.45;
+  transition: color 0.2s, opacity 0.2s, filter 0.2s;
+}
+.preset-icon svg {
+  width: 100%;
+  height: 100%;
+}
+.preset-card:hover .preset-icon { opacity: 0.65; }
+.preset-card.active .preset-icon {
+  color: var(--accent);
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(255,200,0,0.5));
+}
+.preset-name {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--text);
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+.preset-card.active .preset-name { color: var(--accent); }
+.preset-desc {
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  line-height: 1.6;
+  opacity: 0.65;
+}
+.preset-tag {
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  opacity: 0.5;
+  margin-top: 8px;
+}
+.preset-card.active .preset-tag { opacity: 1; }
+
+/* ── TUNING SLIDERS ── */
+.tuning-list { display: flex; flex-direction: column; gap: 20px; padding: 4px 0; }
+.tuning-row { display: flex; flex-direction: column; gap: 8px; }
+.tuning-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.tuning-name {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--text);
+  font-weight: bold;
+}
+.tuning-desc {
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  color: var(--text-dim);
+  opacity: 0.5;
+  letter-spacing: 0.5px;
+  flex: 1;
+}
+.tuning-val {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  text-shadow: 0 0 6px rgba(255,200,0,0.5);
+  min-width: 18px;
+  text-align: right;
+  letter-spacing: 1px;
+}
+.tuning-track-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tuning-label-l, .tuning-label-r {
+  font-family: 'Courier New', monospace;
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  opacity: 0.4;
+  white-space: nowrap;
+  min-width: 52px;
+}
+.tuning-label-r { text-align: right; }
+.tuning-track {
+  flex: 1;
+  position: relative;
+  height: 20px;
+  display: flex;
+  align-items: center;
+}
+.tuning-fill {
+  position: absolute;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255,200,0,0.4), var(--accent));
+  pointer-events: none;
+  border-radius: 1px;
+  transition: width 0.1s;
+}
+.tuning-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  outline: none;
+  border-radius: 1px;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+.tuning-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 0;
+  background: var(--accent);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 8px rgba(255,200,0,0.6), 0 0 2px rgba(255,200,0,0.9);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.tuning-range::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 14px rgba(255,200,0,0.9), 0 0 4px rgba(255,200,0,1);
+  transform: scale(1.2);
+}
+.tuning-range::-webkit-slider-thumb:active {
+  box-shadow: 0 0 20px rgba(255,200,0,1);
+  transform: scale(1.35);
+}
+
+/* ── NEURAL GUARD MODAL ── */
+@keyframes ngm-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes ngm-modal-in {
+  from { opacity: 0; transform: translate(-50%, -48%) scale(0.94); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes ngm-glitch-flicker {
+  0%, 95%, 100% { clip-path: none; transform: translate(-50%,-50%) skewX(0deg); }
+  96%            { clip-path: inset(30% 0 40% 0); transform: translate(calc(-50% + 3px), -50%) skewX(-1deg); }
+  97%            { clip-path: inset(60% 0 10% 0); transform: translate(calc(-50% - 2px), -50%) skewX(0.5deg); }
+  98%            { clip-path: none; transform: translate(-50%,-50%) skewX(0deg); }
+}
+@keyframes ngm-scanline-move {
+  from { background-position: 0 0; }
+  to   { background-position: 0 100%; }
+}
+@keyframes ngm-border-pulse {
+  0%, 100% { box-shadow: 0 0 14px rgba(255,34,0,0.12); }
+  50%       { box-shadow: 0 0 20px rgba(255,34,0,0.18); }
+}
+.neural-guard-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(1px);
+  animation: ngm-overlay-in 0.18s ease-out;
+}
+.neural-guard-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  background: #0d0808;
+  border: 1px solid #662200;
+  border-top: 2px solid #cc2200;
+  padding: 0;
+  animation: ngm-modal-in 0.22s cubic-bezier(0.16,1,0.3,1), ngm-glitch-flicker 6s ease-in-out infinite 2s, ngm-border-pulse 4s ease-in-out infinite;
+  overflow: hidden;
+}
+.neural-guard-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 3px, rgba(255,0,0,0.018) 3px, rgba(255,0,0,0.018) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.ngm-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px 10px;
+  position: relative;
+  z-index: 1;
+}
+.ngm-tag {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #aa3300;
+  white-space: nowrap;
+}
+.ngm-title {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #cc6644;
+  font-weight: bold;
+}
+.ngm-scanline {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #661100 30%, #882200 50%, #661100 70%, transparent);
+  margin: 0 18px;
+  position: relative;
+  z-index: 1;
+}
+.ngm-body {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #887766;
+  letter-spacing: 0.6px;
+  line-height: 1.7;
+  padding: 16px 18px 14px;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+.ngm-actions {
+  display: flex;
+  gap: 10px;
+  padding: 4px 18px 18px;
+  position: relative;
+  z-index: 1;
+}
+.ngm-btn {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  padding: 9px 12px;
+  border: 1px solid;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: bold;
+  white-space: nowrap;
+}
+.ngm-btn-save {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.ngm-btn-save:hover {
+  background: rgba(255,200,0,0.1);
+  box-shadow: 0 0 12px rgba(255,200,0,0.3);
+  text-shadow: 0 0 8px rgba(255,200,0,0.8);
+}
+.ngm-btn-discard {
+  color: #ff4444;
+  border-color: #ff3333;
+}
+.ngm-btn-discard:hover {
+  background: rgba(255,50,50,0.08);
+  box-shadow: 0 0 12px rgba(255,50,50,0.25);
+  text-shadow: 0 0 8px rgba(255,80,80,0.8);
+}
+.ngm-footer {
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #330000;
+  text-align: right;
+  padding: 6px 18px 8px;
+  border-top: 1px solid #1a0000;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── NEURAL UNSAVED DOT (sidebar) ── */
+@keyframes dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 34, 0, 0.7); transform: scale(1); }
+  50%       { box-shadow: 0 0 0 4px rgba(255, 34, 0, 0);  transform: scale(1.15); }
+}
+.nav-unsaved-dot {
+  display: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff2200;
+  margin-left: auto;
+  margin-right: 2px;
+  flex-shrink: 0;
+}
+.nav-unsaved-dot.visible {
+  display: block;
+  animation: dot-pulse 1.5s ease-in-out infinite;
+}
+
+/* ── NEURAL SAVE UNSAVED ── */
+.btn-save.neural-unsaved {
+  color: #ff4400;
+  border-color: #ff4400;
+  text-shadow: 0 0 4px rgba(255,68,0,0.5);
+}
+
+/* ── NEURAL RESET BUTTON ── */
+.btn-reset-neural {
+  color: var(--text-dim);
+  border-color: var(--text-dim);
+  opacity: 0.55;
+  margin-right: 6px;
+}
+.btn-reset-neural:hover {
+  color: #ff4444;
+  border-color: #ff4444;
+  opacity: 1;
+  text-shadow: 0 0 6px rgba(255,68,68,0.6);
 }
