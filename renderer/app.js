@@ -1806,10 +1806,12 @@ function showLauncherUpdate(version, url) {
   const banner = document.getElementById('launcher-update-banner');
   const verEl = document.getElementById('launcher-new-version');
   const linkEl = document.getElementById('launcher-update-link');
+  const launcherRow = document.getElementById('launcher-update-row');
   if (!banner) return;
 
-  verEl.textContent = 'v' + version;
+  if (verEl) verEl.textContent = 'v' + version;
   if (linkEl) { linkEl.dataset.url = url || ''; linkEl.href = '#'; }
+  if (launcherRow) launcherRow.style.display = 'flex';
   banner.style.display = 'flex';
   // If bot update was already detected, show it in the banner too
   if (_updateInfo && _config) {
@@ -1824,14 +1826,20 @@ function showBotUpdateInBanner(oldVer, newVer, url) {
   const row = document.getElementById('bot-update-row');
   const verEl = document.getElementById('bot-new-version');
   const linkEl = document.getElementById('bot-update-link');
+  const launcherRow = document.getElementById('launcher-update-row');
   const banner = document.getElementById('launcher-update-banner');
   if (!row) return;
-  if (verEl) verEl.textContent = oldVer + ' → v' + newVer;
+  if (verEl) verEl.textContent = oldVer + ' → ' + newVer;
   if (linkEl) {
     if (url) { linkEl.dataset.url = url; linkEl.href = '#'; linkEl.style.display = ''; }
     else linkEl.style.display = 'none';
   }
   row.style.display = 'flex';
+  // Hide launcher row if there is no launcher update pending
+  const launcherVerEl = document.getElementById('launcher-new-version');
+  if (launcherRow && (!launcherVerEl || !launcherVerEl.textContent.trim())) {
+    launcherRow.style.display = 'none';
+  }
   // Show banner if not already visible
   if (banner && banner.style.display === 'none') banner.style.display = 'flex';
 }
@@ -1839,6 +1847,11 @@ function showBotUpdateInBanner(oldVer, newVer, url) {
 function dismissLauncherUpdate() {
   const banner = document.getElementById('launcher-update-banner');
   if (banner) banner.style.display = 'none';
+  // Reset rows for next show
+  const launcherRow = document.getElementById('launcher-update-row');
+  const botRow = document.getElementById('bot-update-row');
+  if (launcherRow) launcherRow.style.display = 'flex';
+  if (botRow) botRow.style.display = 'none';
 }
 
 async function installBotUpdateInline() {
