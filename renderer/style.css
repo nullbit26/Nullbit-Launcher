@@ -2776,22 +2776,11 @@ input:checked + .toggle-slider::before {
   align-items: center;
   gap: 0;
   margin: 10px 0 12px;
-  border: 1px solid rgba(255,160,0,0.12);
-  border-left: 2px solid rgba(255,160,0,0.4);
-  background: rgba(10,6,0,0.6);
-  padding: 7px 14px;
+  border-left: 2px solid rgba(255,160,0,0.35);
+  border-bottom: 1px solid rgba(255,160,0,0.08);
+  background: transparent;
+  padding: 6px 14px;
   position: relative;
-  overflow: hidden;
-}
-.bot-statusbar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg, transparent, transparent 3px,
-    rgba(255,160,0,0.015) 3px, rgba(255,160,0,0.015) 4px
-  );
-  pointer-events: none;
 }
 .bsb-inv {
   display: flex;
