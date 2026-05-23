@@ -1104,6 +1104,8 @@ input, textarea {
   transition: box-shadow .2s, border-color .2s, color .2s, transform .1s;
   position: relative;
   overflow: hidden;
+  min-width: 180px;
+  flex-shrink: 0;
 }
 
 /* Sweep wave on click */
