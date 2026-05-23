@@ -1068,22 +1068,25 @@ function _bootStatusBar() {
   const segEl   = document.getElementById('inv-segments');
   if (!bar) return;
 
-  bar.classList.remove('bot-offline', 'bot-online');
-  bar.classList.add('bot-booting');
+  // Set dots placeholders
+  if (hpVal)   hpVal.textContent   = '···';
+  if (foodVal) foodVal.textContent = '···';
+  if (segEl)   segEl.textContent   = '············';
 
-  // Show animated dots while waiting for data
+  // Animate dots
   let dots = 0;
-  const targets = [hpVal, foodVal];
-  targets.forEach(el => { if (el) el.textContent = '·'; });
-  if (segEl) segEl.textContent = '············';
-
   _statusDotsTimer = setInterval(() => {
     dots = (dots + 1) % 4;
     const d = '·'.repeat(dots || 1);
-    targets.forEach(el => { if (el) el.textContent = d; });
+    if (hpVal)   hpVal.textContent   = d;
+    if (foodVal) foodVal.textContent = d;
   }, 280);
 
-  // After 2s fade-in real values
+  // Trigger appear animation
+  bar.classList.remove('bot-offline', 'bot-online', 'bot-shutdown');
+  bar.classList.add('bot-booting');
+
+  // After animation completes switch to online
   _statusBootTimer = setTimeout(() => {
     if (_statusDotsTimer) { clearInterval(_statusDotsTimer); _statusDotsTimer = null; }
     bar.classList.remove('bot-booting');
@@ -1091,7 +1094,7 @@ function _bootStatusBar() {
     if (hpVal)   hpVal.textContent   = '—';
     if (foodVal) foodVal.textContent = '—';
     if (segEl)   segEl.textContent   = '▱▱▱▱▱▱▱▱▱▱▱▱';
-  }, 2000);
+  }, 700);
 }
 
 
