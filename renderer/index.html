@@ -518,23 +518,23 @@
 
           <div class="tuning-row">
             <div class="tuning-header">
-              <span class="tuning-name">SURVIVAL</span>
-              <span class="tuning-desc">Flee sensitivity and self-preservation</span>
+              <span class="tuning-name">FLEE THRESHOLD</span>
+              <span class="tuning-desc">When to retreat — higher means bot fights longer before fleeing</span>
               <span class="tuning-val" id="tuning-val-survival">5</span>
             </div>
             <div class="tuning-track-wrap">
-              <span class="tuning-label-l">CAUTIOUS</span>
+              <span class="tuning-label-l">QUICK FLEE</span>
               <div class="tuning-track">
                 <input class="tuning-range" type="range" id="tuning-survival" min="1" max="10" step="1" value="5" oninput="onTuningChange('survival', this.value)">
                 <div class="tuning-fill" id="tuning-fill-survival"></div>
               </div>
-              <span class="tuning-label-r">RECKLESS</span>
+              <span class="tuning-label-r">STAND FIGHT</span>
             </div>
           </div>
 
           <div class="tuning-row">
             <div class="tuning-header">
-              <span class="tuning-name">GATHER SAFETY</span>
+              <span class="tuning-name">GATHER RISK</span>
               <span class="tuning-desc">Threat response during resource gathering</span>
               <span class="tuning-val" id="tuning-val-gather">5</span>
             </div>
@@ -550,12 +550,12 @@
 
           <div class="tuning-row">
             <div class="tuning-header">
-              <span class="tuning-name">MOBILITY</span>
-              <span class="tuning-desc">Pathfinding thoroughness vs speed</span>
+              <span class="tuning-name">PATHFINDING</span>
+              <span class="tuning-desc">Path search depth vs speed — lower is more precise, higher is faster</span>
               <span class="tuning-val" id="tuning-val-mobility">5</span>
             </div>
             <div class="tuning-track-wrap">
-              <span class="tuning-label-l">THOROUGH</span>
+              <span class="tuning-label-l">CAREFUL</span>
               <div class="tuning-track">
                 <input class="tuning-range" type="range" id="tuning-mobility" min="1" max="10" step="1" value="5" oninput="onTuningChange('mobility', this.value)">
                 <div class="tuning-fill" id="tuning-fill-mobility"></div>
