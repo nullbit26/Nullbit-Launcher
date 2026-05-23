@@ -1654,7 +1654,7 @@ function semverGt(a, b) {
 // ────────────────────────────────────────────
 //  Launcher Update Check
 // ────────────────────────────────────────────
-const LAUNCHER_VERSION = '3.0.9';
+const LAUNCHER_VERSION = '3.0.10';
 
 async function checkLauncherUpdate() {
   try {
@@ -1796,6 +1796,20 @@ async function installLauncherUpdate() {
   // Switch to cyberpunk download state
   normalContent.style.display = 'none';
   downloadState.style.display = 'flex';
+
+  // If update already downloaded — install immediately
+  if (_launcherUpdateReady) {
+    sysLog('[UPDATER] UPDATE READY — INSTALLING NOW...');
+    if (loadingText) loadingText.textContent = 'INSTALLING UPDATE';
+    if (progressBar) progressBar.style.width = '100%';
+    if (percentText) percentText.textContent = '100%';
+    stopAllDots();
+    setTimeout(async () => {
+      await launcher.nsisInstallUpdate();
+    }, 800);
+    return;
+  }
+
   sysLog('[UPDATER] DOWNLOADING NEW LAUNCHER...');
 
   // Listen for native autoUpdater progress
@@ -1808,8 +1822,9 @@ async function installLauncherUpdate() {
     if (sizeText) sizeText.textContent = `${(Math.random()*30+10).toFixed(2)} MB / ~45.00 MB`;
   });
 
-  // When download is ready — install immediately
+  // When download completes — install
   launcher.onAutoUpdateReady(() => {
+    _launcherUpdateReady = true;
     if (loadingText) loadingText.textContent = 'INSTALLATION COMPLETE';
     if (progressBar) progressBar.style.width = '100%';
     if (percentText) percentText.textContent = '100%';
@@ -1839,9 +1854,17 @@ async function installLauncherUpdate() {
 // ────────────────────────────────────────────
 
 // Native NSIS autoUpdater events
+let _launcherUpdateReady = false; // true once update-downloaded fires
+
 launcher.onAutoUpdateAvailable((info) => {
   sysLog(`[UPDATER] New launcher version: v${info.version}`);
+  _launcherUpdateReady = false;
   showLauncherUpdate(info.version, null);
+});
+
+launcher.onAutoUpdateReady((info) => {
+  sysLog('[UPDATER] Update downloaded and ready to install');
+  _launcherUpdateReady = true;
 });
 
 launcher.onBotLog(({ level, text }) => {
