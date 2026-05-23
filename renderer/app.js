@@ -1060,7 +1060,7 @@ function _offlineStatusBar() {
   setTimeout(() => {
     bar.classList.remove('bot-shutdown');
     bar.classList.add('bot-offline');
-  }, 650);
+  }, 1250);
 }
 
 function _bootStatusBar() {

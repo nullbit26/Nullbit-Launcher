@@ -2823,7 +2823,7 @@ input:checked + .toggle-slider::before {
 .launch-status.bot-shutdown .lst-row,
 .launch-status.bot-shutdown .lst-state-row {
   visibility: visible;
-  animation: statusShutdown 0.6s ease-out forwards;
+  animation: statusShutdown 1.2s ease-out forwards;
 }
 @keyframes statusShutdown {
   0%   { opacity: 1; filter: brightness(1) blur(0); }
