@@ -1672,7 +1672,7 @@ function semverGt(a, b) {
 // ────────────────────────────────────────────
 //  Launcher Update Check
 // ────────────────────────────────────────────
-const LAUNCHER_VERSION = '3.0.15';
+const LAUNCHER_VERSION = '3.0.16';
 
 async function checkLauncherUpdate() {
   try {
@@ -2254,13 +2254,29 @@ async function downloadBot() {
     } else {
       clearInterval(animInterval);
       clearInterval(msgInterval);
-      sysLog('[ERROR] Bot download failed: ' + (result?.error || 'Unknown error'));
-      simulateDownload();
+      const errMsg = result?.error || 'Unknown error';
+      sysLog('[ERROR] Bot download failed: ' + errMsg);
+      if (progressStatus) progressStatus.textContent = 'ERROR';
+      if (progressGlitch) progressGlitch.textContent = 'DOWNLOAD FAILED';
+      if (progressBar) progressBar.style.background = '#ff003c';
+      showToast('DOWNLOAD ERROR: ' + errMsg, 'err', 8000);
+      setTimeout(() => {
+        if (progressEl) progressEl.style.display = 'none';
+        if (actionsEl) actionsEl.style.display = 'flex';
+      }, 3000);
     }
   } catch (e) {
     clearInterval(msgInterval);
-    sysLog('[ERROR] Download error: ' + e.message);
-    simulateDownload();
+    const errMsg = e.message || String(e);
+    sysLog('[ERROR] Download error: ' + errMsg);
+    if (progressStatus) progressStatus.textContent = 'ERROR';
+    if (progressGlitch) progressGlitch.textContent = 'DOWNLOAD FAILED';
+    if (progressBar) progressBar.style.background = '#ff003c';
+    showToast('DOWNLOAD ERROR: ' + errMsg, 'err', 8000);
+    setTimeout(() => {
+      if (progressEl) progressEl.style.display = 'none';
+      if (actionsEl) actionsEl.style.display = 'flex';
+    }, 3000);
   }
 }
 
