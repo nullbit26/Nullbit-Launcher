@@ -1186,9 +1186,9 @@ input, textarea {
 .bsw-inline {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   flex: 1;
-  min-width: 0;
+  justify-content: flex-end;
   padding: 0 14px;
   height: 100%;
 }
@@ -1196,8 +1196,7 @@ input, textarea {
   display: flex;
   align-items: center;
   gap: 7px;
-  flex: 1;
-  min-width: 0;
+  flex-shrink: 0;
 }
 .bsw-inline-label {
   font-size: 8px;
@@ -1208,12 +1207,12 @@ input, textarea {
   white-space: nowrap;
 }
 .bsw-inline-bar-wrap {
-  flex: 1;
+  width: 100px;
   height: 4px;
   background: rgba(255,255,255,0.06);
   position: relative;
   overflow: visible;
-  min-width: 40px;
+  flex-shrink: 0;
 }
 .bsw-hp-bar {
   height: 100%;
