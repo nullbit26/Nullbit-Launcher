@@ -1,5 +1,27 @@
 # NULLBIT Launcher — Changelog
 
+## v3.0.24 (2026-05-24)
+
+### Status Bar — Inline Launch Status
+- **feat**: INV/HP/FOOD/STATE now inline in `launch-row` next to LAUNCH BOT button — separate panel removed
+- **feat**: INV display — ASCII segments `▰▰▰▱▱▱▱▱▱▱▱▱` (12 blocks, 3 slots each), turns red >75%, pulses >90%
+- **feat**: HP color-coded: green (>60%) / amber (30–60%) / red critical with pulse (<30%)
+- **feat**: STATE badge on second row with per-state glow animations (IDLE/GATHERING/COMBAT/FLEE/FOLLOWING)
+- **feat**: Status bar **hidden** when bot is OFFLINE — no empty fields shown
+- **feat**: Boot sequence — bar appears **2s after bot process confirmed** (after main glitch flash settles)
+- **feat**: Appear animation — blur→brightness→clear fade-in (0.6s)
+- **feat**: Shutdown animation — brightness→blur fade-out (0.6s), synced with other stop effects
+- **feat**: Animated dots `·` → `··` → `···` (amber) appear 1s after panel, persist until real telemetry arrives
+- **fix**: `btn-launch` fixed width — status row doesn't shift on button text change
+- **fix**: HP/FOOD `min-width` — layout stable during dots animation
+
+### Window
+- **feat**: Default size `1240×800`, `minWidth: 1240` / `minHeight: 800` — cannot resize below default
+- **feat**: Maximize/Restore button `□` in titlebar with blue hover
+- **fix**: All titlebar buttons equal `28×28px` with flex-centered icons
+
+---
+
 ## v3.0.23
 - **feat**: Cyberpunk glitch banner animation on show (`bannerGlitchIn`) — clip-path reveal, scaleY bounce, hue-rotate flash (0.45s steps)
 - **feat**: Cyberpunk glitch banner animation on dismiss (`bannerGlitchOut`) — X-split, scaleY collapse, brightness flash (0.35s)
