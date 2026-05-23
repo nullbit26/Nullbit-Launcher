@@ -57,14 +57,16 @@
     <div class="update-banner-row" id="launcher-update-row">
       <div class="update-banner-left">
         <span class="update-banner-arrow">↑</span>
-        <span class="update-banner-label" data-text="UPDATE">UPDATE</span>
-        <span class="update-banner-sep">·</span>
-        <span class="update-banner-tag" data-text="LAUNCHER">LAUNCHER</span>
+        <span class="update-banner-group" data-text="UPDATE · LAUNCHER">
+          <span class="update-banner-label">UPDATE</span>
+          <span class="update-banner-sep">·</span>
+          <span class="update-banner-tag">LAUNCHER</span>
+        </span>
         <span class="update-banner-version" id="launcher-new-version"></span>
       </div>
       <div class="update-banner-right">
         <button class="update-banner-btn" id="launcher-install-btn" onclick="installLauncherUpdate()">INSTALL</button>
-        <a class="update-banner-link" id="launcher-update-link" href="#" target="_blank">GITHUB ↗</a>
+        <a class="update-banner-link" id="launcher-update-link" href="#" onclick="event.preventDefault(); launcher.openExternal && launcher.openExternal(this.dataset.url)" data-url="">GITHUB ↗</a>
         <button class="update-banner-close" onclick="dismissLauncherUpdate()">✕</button>
       </div>
     </div>

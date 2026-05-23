@@ -349,10 +349,14 @@ input, textarea {
 .update-banner-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
   padding: 4px 0;
   white-space: nowrap;
+}
+
+.update-banner-row .update-banner-right {
+  margin-left: 18px;
 }
 
 .update-banner-bot-row {
@@ -395,6 +399,42 @@ input, textarea {
   50%       { opacity: 0.45; }
 }
 
+/* UPDATE · LAUNCHER group — shared outlined box with glitch */
+.update-banner-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1.5px solid rgba(0,0,0,0.55);
+  padding: 2px 10px 2px 8px;
+  border-radius: 2px;
+  background: rgba(0,0,0,0.1);
+  animation: bannerGroupGlitch 5s infinite;
+  position: relative;
+}
+
+@keyframes bannerGroupGlitch {
+  0%, 82%, 100% {
+    border-color: rgba(0,0,0,0.55);
+    box-shadow: none;
+    transform: translateX(0);
+  }
+  83% {
+    border-color: #ff2200;
+    box-shadow: 2px 0 0 #ff0000, -2px 0 0 #00ffff;
+    transform: translateX(2px);
+  }
+  84% {
+    border-color: #000;
+    box-shadow: -2px 0 0 #ff0000, 2px 0 0 #00ccff;
+    transform: translateX(-1px);
+  }
+  85% {
+    border-color: rgba(0,0,0,0.55);
+    box-shadow: none;
+    transform: translateX(0);
+  }
+}
+
 /* "UPDATE" glitch label */
 .update-banner-label {
   color: #000;
@@ -402,31 +442,7 @@ input, textarea {
   font-weight: 900;
   letter-spacing: 2px;
   font-family: var(--font);
-  animation: bannerGlitch 6s infinite;
   position: relative;
-}
-
-@keyframes bannerGlitch {
-  0%, 85%, 100% {
-    color: #000;
-    text-shadow: none;
-    transform: translateX(0);
-  }
-  86% {
-    color: #8b0000;
-    text-shadow: 2px 0 #ff0000, -1px 0 #00ffff;
-    transform: translateX(2px);
-  }
-  87% {
-    color: #000;
-    text-shadow: -2px 0 #ff0000, 2px 0 #00ccff;
-    transform: translateX(-1px);
-  }
-  88% {
-    color: #000;
-    text-shadow: none;
-    transform: translateX(0);
-  }
 }
 
 .update-banner-sep {
@@ -434,28 +450,26 @@ input, textarea {
   font-size: 10px;
 }
 
-/* "LAUNCHER" / "BOT" tag */
+/* "LAUNCHER" / "BOT" tag — inside group, no own border */
 .update-banner-tag {
-  background: rgba(0,0,0,0.22);
   color: #000;
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 900;
   letter-spacing: 2px;
-  padding: 2px 8px;
-  border-radius: 2px;
   font-family: var(--font);
-  animation: bannerGlitch 6s infinite 0.4s;
 }
 
-/* Version pill */
+/* Version pill — bright accent, stands out differently */
 .update-banner-version {
-  background: rgba(0,0,0,0.18);
-  color: #000;
-  padding: 1px 8px;
+  background: #000;
+  color: var(--accent);
+  padding: 2px 10px;
   border-radius: 2px;
   font-size: 10px;
   font-family: 'Fira Code', monospace;
-  letter-spacing: 0.5px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  box-shadow: 0 0 6px rgba(0,0,0,0.3);
 }
 
 /* INSTALL button */

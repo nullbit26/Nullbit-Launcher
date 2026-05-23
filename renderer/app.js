@@ -1672,7 +1672,7 @@ function semverGt(a, b) {
 // ────────────────────────────────────────────
 //  Launcher Update Check
 // ────────────────────────────────────────────
-const LAUNCHER_VERSION = '3.0.17';
+const LAUNCHER_VERSION = '3.0.18';
 
 async function checkLauncherUpdate() {
   try {
@@ -1704,7 +1704,7 @@ function showLauncherUpdate(version, url) {
   if (!banner) return;
 
   verEl.textContent = 'v' + version;
-  linkEl.href = url || '#';
+  if (linkEl) { linkEl.dataset.url = url || ''; linkEl.href = '#'; }
   banner.style.display = 'flex';
   // If bot update was already detected, show it in the banner too
   if (_updateInfo && _config) {
@@ -1723,7 +1723,7 @@ function showBotUpdateInBanner(oldVer, newVer, url) {
   if (!row) return;
   if (verEl) verEl.textContent = oldVer + ' → v' + newVer;
   if (linkEl) {
-    if (url) { linkEl.href = url; linkEl.style.display = ''; }
+    if (url) { linkEl.dataset.url = url; linkEl.href = '#'; linkEl.style.display = ''; }
     else linkEl.style.display = 'none';
   }
   row.style.display = 'flex';

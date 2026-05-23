@@ -41,6 +41,7 @@ contextBridge.exposeInMainWorld('launcher', {
 
   // Manual install helpers
   openLauncherDir: () => ipcRenderer.invoke('open-launcher-dir'),
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
 
   // Bot
   botExists: () => ipcRenderer.invoke('bot-exists'),

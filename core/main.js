@@ -578,6 +578,14 @@ ipcMain.handle('get-app-version', async () => {
   return { version: app.getVersion() };
 });
 
+// Open URL in system browser
+ipcMain.handle('open-external', async (_event, url) => {
+  if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
+    await shell.openExternal(url);
+  }
+  return { ok: true };
+});
+
 // Open launcher directory for manual bot install
 ipcMain.handle('open-launcher-dir', async () => {
   try {
