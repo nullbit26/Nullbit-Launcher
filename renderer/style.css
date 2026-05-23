@@ -1285,20 +1285,69 @@ input, textarea {
   color: var(--text-dim);
   background: rgba(60,60,60,0.3);
 }
-.bsw-state-badge.state-idle     { background: rgba(255,160,0,0.12); color: var(--accent); border-color: rgba(255,160,0,0.25); box-shadow: 0 0 6px rgba(255,160,0,0.15); }
-.bsw-state-badge.state-gather   { background: rgba(74,158,255,0.12); color: #4a9eff; border-color: rgba(74,158,255,0.25); box-shadow: 0 0 6px rgba(74,158,255,0.15); }
-.bsw-state-badge.state-combat   { background: rgba(255,50,50,0.15); color: #ff4444; border-color: rgba(255,50,50,0.3); animation: combatBadgePulse 0.8s ease-in-out infinite alternate; }
-.bsw-state-badge.state-flee     { background: rgba(255,100,0,0.15); color: #ff6400; border-color: rgba(255,100,0,0.3); animation: combatBadgePulse 0.5s ease-in-out infinite alternate; }
-.bsw-state-badge.state-follow   { background: rgba(58,224,122,0.12); color: #3ae07a; border-color: rgba(58,224,122,0.25); box-shadow: 0 0 6px rgba(58,224,122,0.15); }
-.bsw-state-badge.state-offline  { background: transparent; color: var(--text-dim); border-color: rgba(255,255,255,0.06); }
-
-@keyframes hpCritPulse {
-  0%   { box-shadow: 0 0 6px rgba(255,0,0,0.5); }
-  100% { box-shadow: 0 0 16px rgba(255,0,0,1); }
+.bsw-state-badge.state-offline {
+  background: transparent;
+  color: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.06);
+  box-shadow: none;
 }
-@keyframes combatBadgePulse {
-  0%   { box-shadow: 0 0 4px rgba(255,0,0,0.3); }
-  100% { box-shadow: 0 0 12px rgba(255,0,0,0.7); }
+.bsw-state-badge.state-idle {
+  background: rgba(255,160,0,0.08);
+  color: var(--accent);
+  border-color: rgba(255,160,0,0.3);
+  box-shadow: 0 0 8px rgba(255,160,0,0.2), inset 0 0 8px rgba(255,160,0,0.05);
+  animation: badgeBreath 3s ease-in-out infinite;
+}
+.bsw-state-badge.state-gather {
+  background: rgba(74,158,255,0.1);
+  color: #5aadff;
+  border-color: rgba(74,158,255,0.35);
+  box-shadow: 0 0 10px rgba(74,158,255,0.25), inset 0 0 8px rgba(74,158,255,0.07);
+  animation: badgeBreath 2s ease-in-out infinite;
+}
+.bsw-state-badge.state-combat {
+  background: rgba(255,40,40,0.15);
+  color: #ff4444;
+  border-color: rgba(255,40,40,0.5);
+  box-shadow: 0 0 14px rgba(255,0,0,0.4), inset 0 0 10px rgba(255,0,0,0.1);
+  animation: badgeCombat 0.6s ease-in-out infinite alternate;
+}
+.bsw-state-badge.state-flee {
+  background: rgba(255,100,0,0.15);
+  color: #ff7020;
+  border-color: rgba(255,100,0,0.5);
+  box-shadow: 0 0 14px rgba(255,80,0,0.35), inset 0 0 10px rgba(255,80,0,0.08);
+  animation: badgeCombat 0.4s ease-in-out infinite alternate;
+}
+.bsw-state-badge.state-follow {
+  background: rgba(58,224,122,0.1);
+  color: #3ae07a;
+  border-color: rgba(58,224,122,0.35);
+  box-shadow: 0 0 10px rgba(58,224,122,0.25), inset 0 0 8px rgba(58,224,122,0.06);
+  animation: badgeBreath 2.5s ease-in-out infinite;
+}
+
+@keyframes badgeBreath {
+  0%, 100% { box-shadow: 0 0 6px rgba(255,160,0,0.15), inset 0 0 6px rgba(255,160,0,0.04); opacity: 0.85; }
+  50%       { box-shadow: 0 0 14px rgba(255,160,0,0.35), inset 0 0 10px rgba(255,160,0,0.08); opacity: 1; }
+}
+.bsw-state-badge.state-gather { animation-name: badgeBreathBlue; }
+@keyframes badgeBreathBlue {
+  0%, 100% { box-shadow: 0 0 6px rgba(74,158,255,0.2), inset 0 0 6px rgba(74,158,255,0.05); opacity: 0.85; }
+  50%       { box-shadow: 0 0 16px rgba(74,158,255,0.4), inset 0 0 10px rgba(74,158,255,0.1); opacity: 1; }
+}
+.bsw-state-badge.state-follow { animation-name: badgeBreathGreen; }
+@keyframes badgeBreathGreen {
+  0%, 100% { box-shadow: 0 0 6px rgba(58,224,122,0.2), inset 0 0 6px rgba(58,224,122,0.05); opacity: 0.85; }
+  50%       { box-shadow: 0 0 16px rgba(58,224,122,0.4), inset 0 0 10px rgba(58,224,122,0.1); opacity: 1; }
+}
+@keyframes badgeCombat {
+  0%   { box-shadow: 0 0 8px rgba(255,0,0,0.3), inset 0 0 6px rgba(255,0,0,0.06);  opacity: 0.8; }
+  100% { box-shadow: 0 0 22px rgba(255,0,0,0.7), inset 0 0 14px rgba(255,0,0,0.15); opacity: 1; }
+}
+@keyframes hpCritPulse {
+  0%   { text-shadow: 0 0 4px rgba(255,0,0,0.6); }
+  100% { text-shadow: 0 0 14px rgba(255,0,0,1); }
 }
 
 /* ── SCORES ── */
