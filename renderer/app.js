@@ -1783,7 +1783,15 @@ const CYBER_MESSAGES = [
   'FINALIZING UPDATE'
 ];
 
+let _installInProgress = false;
+
 async function installLauncherUpdate() {
+  if (_installInProgress) return; // prevent double-click
+  _installInProgress = true;
+
+  const btn = document.getElementById('launcher-install-btn');
+  if (btn) btn.disabled = true;
+
   const normalContent = document.getElementById('update-normal-content');
   const downloadState = document.getElementById('update-download-state');
   const loadingText = document.getElementById('cyber-loading-text');
@@ -1791,7 +1799,7 @@ async function installLauncherUpdate() {
   const percentText = document.getElementById('cyber-progress-percent');
   const sizeText = document.getElementById('cyber-glitch-numbers');
 
-  if (!normalContent || !downloadState) return;
+  if (!normalContent || !downloadState) { _installInProgress = false; return; }
 
   // Switch to cyberpunk download state
   normalContent.style.display = 'none';
@@ -1812,7 +1820,10 @@ async function installLauncherUpdate() {
 
   sysLog('[UPDATER] DOWNLOADING NEW LAUNCHER...');
 
-  // Listen for native autoUpdater progress
+  // Clean up any stale listeners before registering new ones
+  launcher.removeUpdateListeners();
+
+  // Progress updates
   launcher.onAutoUpdateProgress((percent) => {
     const p = Math.round(percent);
     if (progressBar) progressBar.style.width = p + '%';
@@ -1822,9 +1833,10 @@ async function installLauncherUpdate() {
     if (sizeText) sizeText.textContent = `${(Math.random()*30+10).toFixed(2)} MB / ~45.00 MB`;
   });
 
-  // When download completes — install
-  launcher.onAutoUpdateReady(() => {
+  // Fire once when download completes — then install
+  launcher.onAutoUpdateReadyOnce(() => {
     _launcherUpdateReady = true;
+    launcher.removeUpdateListeners();
     if (loadingText) loadingText.textContent = 'INSTALLATION COMPLETE';
     if (progressBar) progressBar.style.width = '100%';
     if (percentText) percentText.textContent = '100%';
@@ -1837,15 +1849,21 @@ async function installLauncherUpdate() {
 
   try {
     const r = await launcher.nsisDownloadUpdate();
-    if (r.error) {
+    if (r?.error) {
       errLog('[UPDATER] DOWNLOAD FAILED: ' + r.error);
+      launcher.removeUpdateListeners();
       normalContent.style.display = 'flex';
       downloadState.style.display = 'none';
+      if (btn) btn.disabled = false;
+      _installInProgress = false;
     }
   } catch (e) {
     errLog('[UPDATER] CRITICAL ERROR: ' + e.message);
+    launcher.removeUpdateListeners();
     normalContent.style.display = 'flex';
     downloadState.style.display = 'none';
+    if (btn) btn.disabled = false;
+    _installInProgress = false;
   }
 }
 

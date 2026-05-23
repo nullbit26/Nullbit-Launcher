@@ -29,8 +29,13 @@ contextBridge.exposeInMainWorld('launcher', {
   nsisInstallUpdate:  () => ipcRenderer.invoke('nsis-install-update'),
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   onAutoUpdateAvailable: (cb) => ipcRenderer.on('auto-update-available', (_e, d) => cb(d)),
-  onAutoUpdateProgress: (cb) => ipcRenderer.on('auto-update-progress', (_e, d) => cb(d)),
-  onAutoUpdateReady: (cb) => ipcRenderer.on('auto-update-ready', (_e, d) => cb(d)),
+  onAutoUpdateProgress:  (cb) => ipcRenderer.on('auto-update-progress',  (_e, d) => cb(d)),
+  onAutoUpdateReady:     (cb) => ipcRenderer.on('auto-update-ready',     (_e, d) => cb(d)),
+  onAutoUpdateReadyOnce: (cb) => ipcRenderer.once('auto-update-ready',   (_e, d) => cb(d)),
+  removeUpdateListeners: () => {
+    ipcRenderer.removeAllListeners('auto-update-progress');
+    ipcRenderer.removeAllListeners('auto-update-ready');
+  },
 
   // Manual install helpers
   openLauncherDir: () => ipcRenderer.invoke('open-launcher-dir'),
