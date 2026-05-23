@@ -782,7 +782,6 @@ function setBotRunning(running, force = false) {
     if (tbWrap) tbWrap.className = 'titlebar-status online';
     if (tbTxt)  tbTxt.textContent = 'ONLINE';
     stopAllDots();
-    _bootStatusBar();
   } else {
     if (btn) {
       btn.classList.remove('running');
@@ -931,6 +930,7 @@ async function toggleBot() {
         showToast('BOT ONLINE', 'ok', 3000);
         resetSessionCounters();
         setBotRunning(true);
+        _bootStatusBar();
       }
     }
   } finally {
