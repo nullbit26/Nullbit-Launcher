@@ -1036,6 +1036,7 @@ function updateBotStatus({ hp = 0, maxHp = 20, food = 0, state = 'IDLE' }) {
       : hpPct > 30
       ? '0 0 8px rgba(255,160,0,0.8)'
       : '0 0 10px rgba(255,50,50,1)';
+    hpIcon.style.animation  = hpPct <= 30 ? 'critBarPulse 0.6s ease-in-out infinite alternate' : '';
   }
 
   if (badge) {
