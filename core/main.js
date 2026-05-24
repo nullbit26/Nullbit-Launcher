@@ -387,6 +387,7 @@ ipcMain.handle('update-check', async () => {
       tagName: d.tag_name,
       notes: d.body || '',
       downloadUrl: asset?.browser_download_url || null,
+      htmlUrl: d.html_url || '',
       fileSize: asset?.size || 0,
     };
   } catch (e) {
@@ -560,6 +561,57 @@ ipcMain.handle('open-launcher-dir', async () => {
 ipcMain.handle('bot-exists', async () => {
   const botPath = path.join(EXE_DIR, 'AIBot.exe');
   return { exists: fs.existsSync(botPath), path: botPath };
+});
+
+// System notifications
+ipcMain.handle('notify', async (_event, { title, body }) => {
+  if (Notification.isSupported()) {
+    new Notification({ title, body, icon: path.join(RENDERER_DIR, 'splash-logo.png') }).show();
+  }
+});
+
+// Drag & drop file processing
+ipcMain.handle('process-dropped-file', async (_event, filePath) => {
+  const filename = path.basename(filePath);
+  sysLog(`[DROP] Received: ${filename}`);
+  
+  // Check if it's AIBot.exe
+  if (filename.toLowerCase() !== 'aibot.exe') {
+    return { error: 'INVALID_FILE', message: 'Only AIBot.exe is accepted' };
+  }
+  
+  // Check if it's newer version
+  try {
+    const fs = require('fs');
+    const existingPath = path.join(EXE_DIR, 'AIBot.exe');
+    const droppedStats = fs.statSync(filePath);
+    
+    // Backup existing if exists
+    if (fs.existsSync(existingPath)) {
+      const backupPath = path.join(EXE_DIR, `AIBot.exe.backup.${Date.now()}`);
+      fs.copyFileSync(existingPath, backupPath);
+      sysLog(`[DROP] Backup created: ${path.basename(backupPath)}`);
+      
+      // Cleanup old backups — keep only last 3
+      const backups = fs.readdirSync(EXE_DIR)
+        .filter(f => f.startsWith('AIBot.exe.backup.'))
+        .map(f => ({ name: f, time: parseInt(f.split('.').pop()) || 0 }))
+        .sort((a, b) => b.time - a.time);
+      
+      for (const old of backups.slice(3)) {
+        fs.unlinkSync(path.join(EXE_DIR, old.name));
+        sysLog(`[DROP] Old backup removed: ${old.name}`);
+      }
+    }
+    
+    // Replace with dropped file
+    fs.copyFileSync(filePath, existingPath);
+    sysLog(`[DROP] AIBot.exe replaced successfully`);
+    
+    return { ok: true, filename, size: droppedStats.size };
+  } catch (e) {
+    return { error: 'COPY_FAILED', message: e.message };
+  }
 });
 
 // Download bot from GitHub releases or Dropbox link

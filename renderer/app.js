@@ -205,6 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 5000);
 
+  // Drag & drop for AIBot.exe
+  setupDragDrop();
+
   const handle = document.getElementById('log-resize');
   const box    = document.getElementById('log-box');
   if (!handle || !box) return;
@@ -1864,6 +1867,7 @@ async function checkUpdate() {
   }
 
   _updateInfo = r;
+  _updateInfo.htmlUrl = r.htmlUrl;
   const current = _config?.bot_version || _config?.version || '0.0.0';
   const newer = semverGt(r.version, current);
 
@@ -1873,6 +1877,8 @@ async function checkUpdate() {
     document.getElementById('btn-dl').style.display = '';
     // Also show bot update row in the launcher update banner if it's visible
     showBotUpdateInBanner(current, r.version, r.htmlUrl);
+    // System notification
+    launcher.notify({ title: 'NULLBIT Update', body: `Bot update available: ${current} → ${r.version}` });
   } else {
     box.className = 'update-state up-to-date';
     box.textContent = `UP TO DATE — v${current}`;
@@ -1910,6 +1916,7 @@ async function doUpdate() {
       _config.bot_version = _updateInfo.version;
       await launcher.saveConfig(_config);
       okLog('BOT UPDATED TO v' + _updateInfo.version);
+      launcher.notify({ title: 'NULLBIT Update', body: `Bot updated to v${_updateInfo.version} — restart to apply` });
       showRestartModal(oldVer, _updateInfo.version);
     } else {
       okLog('BOT UPDATED TO v' + _updateInfo.version);
@@ -2025,6 +2032,23 @@ function dismissLauncherUpdate() {
     if (launcherRow) launcherRow.style.display = 'flex';
     if (botRow) botRow.style.display = 'none';
   }, 360);
+}
+
+function dismissBotUpdate() {
+  const botRow = document.getElementById('bot-update-row');
+  const banner = document.getElementById('launcher-update-banner');
+  const launcherRow = document.getElementById('launcher-update-row');
+  if (!botRow) return;
+  botRow.style.display = 'none';
+  if (launcherRow && launcherRow.style.display === 'none') {
+    if (banner) {
+      banner.classList.add('banner-hiding');
+      setTimeout(() => {
+        banner.style.display = 'none';
+        banner.classList.remove('banner-hiding');
+      }, 360);
+    }
+  }
 }
 
 async function installBotUpdateInline() {
@@ -2245,6 +2269,7 @@ launcher.onBotStatus(({ running, exitCode }) => {
       if (!autoRestartEnabled) {
         errLog(`BOT CRASHED (code: ${exitCode}) — AUTO-RESTART DISABLED`);
         showToast('BOT CRASHED — AUTO-RESTART OFF', 'err', 5000);
+        launcher.notify({ title: 'NULLBIT Alert', body: `Bot crashed (code: ${exitCode}) — check logs` });
         return;
       }
       if (autoRestartAttempts >= AUTO_RESTART_MAX) {
@@ -2700,4 +2725,53 @@ function doRelaunch() {
     if (span) span.textContent = '[ RESTARTING... ]';
   }
   setTimeout(() => launcher.relaunch(), 400);
+}
+
+// ── Drag & Drop ──
+function setupDragDrop() {
+  const overlay = document.getElementById('drop-overlay');
+  if (!overlay) return;
+
+  let dragCounter = 0;
+
+  document.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    dragCounter++;
+    if (e.dataTransfer.types.includes('Files')) {
+      overlay.style.display = 'flex';
+    }
+  });
+
+  document.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter === 0) {
+      overlay.style.display = 'none';
+    }
+  });
+
+  document.addEventListener('dragover', (e) => {
+    e.preventDefault();
+  });
+
+  document.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    dragCounter = 0;
+    overlay.style.display = 'none';
+
+    const files = e.dataTransfer.files;
+    if (files.length === 0) return;
+
+    const file = files[0];
+    const result = await launcher.processDroppedFile(file.path);
+
+    if (result.ok) {
+      okLog(`[DROP] AIBot.exe installed (${(result.size / 1024 / 1024).toFixed(1)} MB)`);
+      showToast('AIBOT.EXE INSTALLED — RESTART TO APPLY', 'ok', 5000);
+      launcher.notify({ title: 'NULLBIT', body: 'AIBot.exe updated — restart to apply' });
+    } else {
+      errLog(`[DROP] Failed: ${result.message}`);
+      showToast(result.message, 'err', 4000);
+    }
+  });
 }

@@ -50,6 +50,14 @@
   </div>
 </div>
 
+<!-- ── DRAG & DROP OVERLAY ── -->
+<div class="drop-overlay" id="drop-overlay" style="display:none">
+  <div class="drop-zone">
+    <span class="drop-icon">↓</span>
+    <span class="drop-text">DROP AIBOT.EXE HERE</span>
+  </div>
+</div>
+
 <!-- ── LAUNCHER UPDATE BANNER ── -->
 <div class="update-banner" id="launcher-update-banner" style="display:none">
   <!-- Normal State -->
@@ -84,7 +92,8 @@
       </div>
       <div class="update-banner-right">
         <button class="update-banner-btn" id="bot-install-btn" onclick="installBotUpdateInline()">INSTALL</button>
-        <a class="update-banner-link" id="bot-update-link" href="#" target="_blank">GITHUB ↗</a>
+        <a class="update-banner-link" id="bot-update-link" href="#" onclick="event.preventDefault(); launcher.openExternal && launcher.openExternal(this.dataset.url)">GITHUB ↗</a>
+        <button class="update-banner-close" onclick="dismissBotUpdate()">✕</button>
       </div>
     </div>
     <!-- Bot inline progress -->

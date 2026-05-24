@@ -20,6 +20,12 @@ contextBridge.exposeInMainWorld('launcher', {
   stopBot:    ()       => ipcRenderer.invoke('bot-stop'),
   botStatus:  ()       => ipcRenderer.invoke('bot-status'),
 
+  // System notifications
+  notify: ({ title, body }) => ipcRenderer.invoke('notify', { title, body }),
+  
+  // Drag & drop
+  processDroppedFile: (filePath) => ipcRenderer.invoke('process-dropped-file', filePath),
+
   // Update (bot)
   checkUpdate:    ()        => ipcRenderer.invoke('update-check'),
   downloadUpdate: (info)    => ipcRenderer.invoke('update-download', info),
