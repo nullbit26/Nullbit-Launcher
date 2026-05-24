@@ -64,9 +64,9 @@ function createSplash() {
 // ────────────────────────────────────────────
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1240,
+    width: 1280,
     height: 800,
-    minWidth: 1240,
+    minWidth: 1280,
     minHeight: 800,
     frame: false,
     transparent: false,
