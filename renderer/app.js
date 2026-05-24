@@ -305,6 +305,11 @@ function _doSwitchTab(el) {
     target.classList.add('active', 'tab-enter');
     requestAnimationFrame(() => requestAnimationFrame(() => target.classList.remove('tab-enter')));
   }
+  // Hide update dot when entering UPDATE tab
+  if (el.dataset.tab === 'update') {
+    const navDot = document.getElementById('nav-update-dot');
+    if (navDot) navDot.style.display = 'none';
+  }
   // Take snapshot of Neural fields when ENTERING Neural tab
   if (el.dataset.tab === 'neural') {
     _neuralSnapshot = {};
@@ -1953,6 +1958,9 @@ function showLauncherUpdate(version, url) {
   banner.classList.add('banner-showing');
   banner.style.display = 'flex';
   setTimeout(() => banner.classList.remove('banner-showing'), 500);
+  // Show red dot on UPDATE nav item
+  const navDot = document.getElementById('nav-update-dot');
+  if (navDot) navDot.style.display = 'inline-block';
   // If bot update was already detected, show it in the banner too
   if (_updateInfo && _config) {
     const current = _config.bot_version || _config.version || '0.0.0';
@@ -1975,6 +1983,9 @@ function showBotUpdateInBanner(oldVer, newVer, url) {
     else linkEl.style.display = 'none';
   }
   row.style.display = 'flex';
+  // Show red dot on UPDATE nav item
+  const navDot = document.getElementById('nav-update-dot');
+  if (navDot) navDot.style.display = 'inline-block';
   // Hide launcher row if there is no launcher update pending
   const launcherVerEl = document.getElementById('launcher-new-version');
   if (launcherRow && (!launcherVerEl || !launcherVerEl.textContent.trim())) {
