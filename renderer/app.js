@@ -1993,9 +1993,9 @@ function showBotUpdateInBanner(oldVer, newVer, url) {
   const launcherRow = document.getElementById('launcher-update-row');
   const banner = document.getElementById('launcher-update-banner');
   if (!row) return;
-  if (verEl) verEl.textContent = oldVer + ' → ' + newVer;
+  if (verEl) verEl.textContent = oldVer + ' > ' + newVer;
   if (linkEl) {
-    if (url) { linkEl.dataset.url = url; linkEl.href = '#'; linkEl.style.display = ''; }
+    if (url) { linkEl.dataset.url = url; linkEl.href = '#'; linkEl.style.display = 'inline-flex'; }
     else linkEl.style.display = 'none';
   }
   row.style.display = 'flex';
