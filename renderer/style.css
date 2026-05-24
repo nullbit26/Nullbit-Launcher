@@ -329,6 +329,9 @@ input, textarea {
 .update-banner.banner-hiding {
   animation: bannerGlitchOut 0.35s steps(1) forwards;
 }
+.update-banner.banner-showing {
+  animation: bannerGlitchIn 0.45s steps(1) forwards;
+}
 
 /* scanline overlay */
 .update-banner::before {
@@ -523,40 +526,59 @@ input, textarea {
   box-shadow: 0 0 6px rgba(0,0,0,0.3);
 }
 
-/* INSTALL button — outline style on yellow bg */
+/* INSTALL button — solid action style */
 .update-banner-btn {
-  background: transparent;
-  color: #000;
-  border: 1.5px solid rgba(0,0,0,0.7);
-  padding: 3px 14px;
+  background: rgba(0,0,0,0.85);
+  color: var(--accent);
+  border: 1.5px solid rgba(0,0,0,0.9);
+  padding: 4px 14px;
   font-size: 10px;
   letter-spacing: 1.5px;
   cursor: pointer;
-  transition: background 0.15s, box-shadow 0.15s;
+  transition: all 0.2s ease;
   font-family: var(--font);
   font-weight: 900;
   border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  height: 26px;
 }
 .update-banner-btn:hover {
-  background: rgba(0,0,0,0.12);
-  box-shadow: 0 0 8px rgba(0,0,0,0.25);
+  background: #000;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(0,0,0,0.4);
+  transform: translateY(-1px);
 }
 .update-banner-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+  transform: none;
 }
 
-/* GITHUB link */
+/* GITHUB link — subtle link style */
 .update-banner-link {
-  color: #000;
-  text-decoration: none;
+  color: rgba(0,0,0,0.6);
+  text-decoration: underline;
+  text-underline-offset: 2px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 1px;
-  opacity: 0.7;
-  transition: opacity 0.15s;
+  padding: 4px 10px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  border: 1px solid transparent;
 }
-.update-banner-link:hover { opacity: 1; }
+.update-banner-link:hover {
+  color: #000;
+  text-decoration: underline;
+  background: rgba(0,0,0,0.08);
+  border-radius: 2px;
+}
 
 /* ✕ close */
 .update-banner-close {

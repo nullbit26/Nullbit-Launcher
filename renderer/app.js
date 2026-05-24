@@ -1949,7 +1949,10 @@ function showLauncherUpdate(version, url) {
   if (verEl) verEl.textContent = 'v' + version;
   if (linkEl) { linkEl.dataset.url = url || ''; linkEl.href = '#'; }
   if (launcherRow) launcherRow.style.display = 'flex';
+  banner.classList.remove('banner-hiding');
+  banner.classList.add('banner-showing');
   banner.style.display = 'flex';
+  setTimeout(() => banner.classList.remove('banner-showing'), 500);
   // If bot update was already detected, show it in the banner too
   if (_updateInfo && _config) {
     const current = _config.bot_version || _config.version || '0.0.0';
@@ -1984,6 +1987,7 @@ function showBotUpdateInBanner(oldVer, newVer, url) {
 function dismissLauncherUpdate() {
   const banner = document.getElementById('launcher-update-banner');
   if (!banner) return;
+  banner.classList.remove('banner-showing');
   banner.classList.add('banner-hiding');
   setTimeout(() => {
     banner.style.display = 'none';
