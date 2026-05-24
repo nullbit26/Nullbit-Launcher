@@ -1,5 +1,16 @@
 # NULLBIT Launcher — Changelog
 
+## v3.0.26 (2026-05-24)
+
+### UX Improvements
+- **feat**: Window opens on top of other windows on launch (auto-releases after 3s)
+- **feat**: Red pulsing dot on UPDATE nav item when update available (hidden when tab opened)
+- **fix**: Bot banner buttons styled same as launcher banner (symmetry + visual distinction)
+- **fix**: Bot banner GITHUB link visibility fixed
+- **fix**: Banner show/hide animations work for both launcher and bot updates
+
+---
+
 ## v3.0.25 (2026-05-24)
 
 ### Release

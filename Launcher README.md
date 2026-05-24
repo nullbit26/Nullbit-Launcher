@@ -1,8 +1,13 @@
-# NULLBIT LAUNCHER v3.0.25
+# NULLBIT LAUNCHER v3.0.26
 
 **Professional AI Bot Management Interface for Minecraft**
 
-🎮 **What's New in v3.0.25:**
+🎮 **What's New in v3.0.26:**
+- Window opens on top of other apps on launch (3s then normal)
+- Red dot on UPDATE tab when update available
+- Fixed bot banner buttons styling
+
+🎮 **Previous v3.0.25:**
 - Release version with all v3.0.24 features
 
 🎮 **Previous v3.0.24:**
@@ -204,6 +209,7 @@ For issues and feature requests:
 
 ## Version History
 
+- **v3.0.26** (2026-05-24) - Window on-top launch, update dot, banner fixes
 - **v3.0.25** (2026-05-24) - Release version
 - **v3.0.24** (2026-05-24) - Inline status bar, boot/shutdown animations, maximize button, window size lock
 - **v3.0.23** (2026-05-23) - Glitch banner animations, animated progress bar, fix bot update install
@@ -220,4 +226,4 @@ For issues and feature requests:
 ---
 
 **© 2026 NULLBIT Systems**
-**Current Version: v3.0.25**
+**Current Version: v3.0.26**

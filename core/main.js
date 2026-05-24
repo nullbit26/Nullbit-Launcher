@@ -72,6 +72,7 @@ function createWindow() {
     transparent: false,
     backgroundColor: '#1c1c1e',
     show: false,
+    alwaysOnTop: true,
     webPreferences: {
       preload: path.join(CORE_DIR, 'preload.js'),
       contextIsolation: true,
@@ -163,7 +164,12 @@ function updateTrayMenu() {
 // Splash done → show main
 ipcMain.on('splash-done', () => {
   if (splashWindow) { splashWindow.close(); splashWindow = null; }
-  if (mainWindow)   { mainWindow.show(); }
+  if (mainWindow)   {
+    mainWindow.show();
+    mainWindow.focus();
+    // Keep on top for 3s then release
+    setTimeout(() => { if (mainWindow) mainWindow.setAlwaysOnTop(false); }, 3000);
+  }
 });
 
 app.whenReady().then(() => {
