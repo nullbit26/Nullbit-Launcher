@@ -197,6 +197,14 @@ document.addEventListener('DOMContentLoaded', () => {
   buildTickers();
   setInterval(buildTickers, 30000);
 
+  // Auto-check for bot update 5 seconds after launch
+  setTimeout(() => {
+    if (typeof checkUpdate === 'function') {
+      sysLog('[AUTO] Checking for bot update...');
+      checkUpdate().catch(() => {});
+    }
+  }, 5000);
+
   const handle = document.getElementById('log-resize');
   const box    = document.getElementById('log-box');
   if (!handle || !box) return;
