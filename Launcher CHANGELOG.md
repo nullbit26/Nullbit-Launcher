@@ -1,5 +1,12 @@
 # NULLBIT Launcher — Changelog
 
+## v3.0.25 (2026-05-24)
+
+### Release
+- **chore**: Version bump to v3.0.25 with all v3.0.24 features
+
+---
+
 ## v3.0.24 (2026-05-24)
 
 ### Status Bar — Inline Launch Status

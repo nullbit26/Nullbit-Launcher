@@ -1,8 +1,11 @@
-# NULLBIT LAUNCHER v3.0.24 - Cyberpunk Edition
+# NULLBIT LAUNCHER v3.0.25 - Cyberpunk Edition
 
 **Professional AI Bot Management Interface for Minecraft**
 
-🎮 **What's New in v3.0.24:**
+🎮 **What's New in v3.0.25:**
+- Release version with all v3.0.24 features
+
+🎮 **Previous v3.0.24:**
 - **Inline Status Bar**: INV/HP/FOOD/STATE now inline next to LAUNCH BOT — clean, no separate panel
 - **ASCII INV Segments**: `▰▰▰▱▱▱▱▱▱▱▱▱` bar turns red >75%, pulses >90%
 - **Boot Animation**: Panel appears 2s after bot starts with blur→fade-in, amber dots while loading
@@ -201,6 +204,7 @@ For issues and feature requests:
 
 ## Version History
 
+- **v3.0.25** (2026-05-24) - Release version
 - **v3.0.24** (2026-05-24) - Inline status bar, boot/shutdown animations, maximize button, window size lock
 - **v3.0.23** (2026-05-23) - Cyberpunk glitch banner animations, animated progress bar, fix bot update install
 - **v3.0.22** (2026-05-23) - Fixed update progress bar IPC listener
@@ -216,4 +220,4 @@ For issues and feature requests:
 ---
 
 **© 2026 NULLBIT Systems**
-**Current Version: v3.0.24**
+**Current Version: v3.0.25**
