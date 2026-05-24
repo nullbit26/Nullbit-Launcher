@@ -1027,6 +1027,7 @@ function updateBotStatus({ hp = 0, maxHp = 20, food = 0, state = 'IDLE' }) {
   if (_statusDotsTimer) { clearInterval(_statusDotsTimer); _statusDotsTimer = null; }
 
   const hpPct = Math.min(100, Math.max(0, (hp / maxHp) * 100));
+  const foodPct = Math.min(100, Math.max(0, (food / 20) * 100)); // max food = 20
 
   hpVal.textContent   = `${Math.round(hp)} / ${Math.round(maxHp)}`;
   foodVal.textContent = Math.round(food);
@@ -1035,6 +1036,13 @@ function updateBotStatus({ hp = 0, maxHp = 20, food = 0, state = 'IDLE' }) {
   if (hpPct > 60)      hpVal.classList.add('hp-high');
   else if (hpPct > 30) hpVal.classList.add('hp-mid');
   else                 hpVal.classList.add('hp-crit');
+
+  if (foodVal) {
+    foodVal.classList.remove('food-high', 'food-mid', 'food-low');
+    if (foodPct > 70)       foodVal.classList.add('food-high');
+    else if (foodPct > 30)  foodVal.classList.add('food-mid');
+    else                    foodVal.classList.add('food-low');
+  }
 
   if (badge) {
     badge.textContent = state;

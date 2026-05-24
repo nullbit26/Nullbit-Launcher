@@ -2904,10 +2904,13 @@ input:checked + .toggle-slider::before {
   letter-spacing: 1px;
 }
 .lst-hp { transition: color 0.4s, text-shadow 0.4s; min-width: 40px; display: inline-block; }
-#bsw-food-val { min-width: 24px; display: inline-block; }
+#bsw-food-val { transition: color 0.4s, text-shadow 0.4s; min-width: 24px; display: inline-block; }
 .lst-hp.hp-high { color: #3ae07a; text-shadow: 0 0 6px rgba(58,224,122,0.8); }
 .lst-hp.hp-mid  { color: var(--accent); text-shadow: 0 0 5px rgba(255,160,0,0.7); }
 .lst-hp.hp-crit { color: #ff4444; text-shadow: 0 0 8px rgba(255,0,0,1); animation: lstHpCrit 0.45s ease-in-out infinite alternate; }
+#bsw-food-val.food-high { color: #3ae07a; text-shadow: 0 0 6px rgba(58,224,122,0.8); }
+#bsw-food-val.food-mid  { color: var(--accent); text-shadow: 0 0 5px rgba(255,160,0,0.7); }
+#bsw-food-val.food-low  { color: #ff4444; text-shadow: 0 0 8px rgba(255,0,0,1); animation: lstHpCrit 0.45s ease-in-out infinite alternate; }
 .lst-dot {
   width: 2px;
   height: 2px;
