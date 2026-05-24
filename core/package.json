@@ -1,7 +1,7 @@
 {
   "name": "nullbit-launcher",
   "version": "3.0.25",
-  "description": "NULLBIT GUI Launcher - Cyberpunk Edition",
+  "description": "NULLBIT GUI Launcher",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

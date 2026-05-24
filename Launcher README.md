@@ -1,4 +1,4 @@
-# NULLBIT LAUNCHER v3.0.25 - Cyberpunk Edition
+# NULLBIT LAUNCHER v3.0.25
 
 **Professional AI Bot Management Interface for Minecraft**
 
@@ -14,7 +14,7 @@
 - **Window Locked**: Default `1240×800`, cannot resize smaller
 
 🎮 **Previous v3.0.23:**
-- **Cyberpunk Glitch Banner**: Update banner appears/dismisses with clip-path glitch, chromatic aberration, scaleY bounce
+- **Glitch Banner**: Update banner appears/dismisses with clip-path reveal, scaleY bounce
 - **Animated Progress Bar**: Dark shimmer body + gold spark sweep (`cyberSpark`) during bot download
 - **Fix**: Removed duplicate `downloadFile` — bot updates now install reliably on first attempt
 
@@ -206,7 +206,7 @@ For issues and feature requests:
 
 - **v3.0.25** (2026-05-24) - Release version
 - **v3.0.24** (2026-05-24) - Inline status bar, boot/shutdown animations, maximize button, window size lock
-- **v3.0.23** (2026-05-23) - Cyberpunk glitch banner animations, animated progress bar, fix bot update install
+- **v3.0.23** (2026-05-23) - Glitch banner animations, animated progress bar, fix bot update install
 - **v3.0.22** (2026-05-23) - Fixed update progress bar IPC listener
 - **v3.0.21** (2026-05-23) - Fixed banner display logic and version formatting
 - **v3.0.20** (2026-05-23) - Heat gradient sliders, logo glitch animation, EN localization
@@ -214,7 +214,7 @@ For issues and feature requests:
 - **v3.0.6** (2026-05-22) - Fixed duplicate IPC handler crash, NSIS auto-update
 - **v3.0.5** (2026-05-22) - Restart modal after bot download, telemetry OFFLINE fix
 - **v3.0.4** (2026-05-21) - DIAGNOSTICS tab, real terminal logic
-- **v3.0.3** (2026-05-22) - Cyberpunk Edition: Auto bot download, hacking effects
+- **v3.0.3** (2026-05-22) - Auto bot download, UI effects
 - **v3.0.0** (2026-05-20) - Initial release
 
 ---

@@ -30,8 +30,8 @@
 ---
 
 ## v3.0.23
-- **feat**: Cyberpunk glitch banner animation on show (`bannerGlitchIn`) — clip-path reveal, scaleY bounce, hue-rotate flash (0.45s steps)
-- **feat**: Cyberpunk glitch banner animation on dismiss (`bannerGlitchOut`) — X-split, scaleY collapse, brightness flash (0.35s)
+- **feat**: Glitch banner animation on show (`bannerGlitchIn`) — clip-path reveal, scaleY bounce, hue-rotate flash (0.45s steps)
+- **feat**: Glitch banner animation on dismiss (`bannerGlitchOut`) — X-split, scaleY collapse, brightness flash (0.35s)
 - **feat**: Chromatic aberration `::after` edge overlay on banner (red/cyan)
 - **feat**: Animated progress bar — dark shimmer body (`cyberBarShift`) + gold spark sweep (`cyberSpark`)
 - **fix**: Removed duplicate `downloadFile` — bot update now installs reliably on first attempt
@@ -63,14 +63,14 @@
 - Fixed bot version badge showing "vinstalled" instead of actual version
 
 ## v3.0.5
-- Added cyberpunk full-screen restart modal after bot download
+- Added full-screen restart modal after bot download
 - Added `RESTART LAUNCHER` button with auto-relaunch via IPC
 - Added bot update notification row in launcher update banner
 - Fixed NaN/NaN MB display during downloads
 - Fixed telemetry OFFLINE status (heartbeat in ResourceSystem and GlobalWatchdog)
 
 ## v3.0.3
-- Initial public release — Cyberpunk Edition
+- Initial public release
 - Auto bot download from GitHub releases
 - First-time setup modal with hacking scramble effect
 - NSIS installer with auto-updater
