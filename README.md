@@ -6,7 +6,7 @@
 
 ### First Launch (New Users)
 1. Download and install `NULLBIT Launcher Setup 3.0.3.exe`
-2. Run launcher - it will show **WELCOME** screen with cyberpunk effects
+2. Run launcher - it will show **WELCOME** screen with effects
 3. Click **AUTO INSTALL BOT** to download latest AIBot.exe automatically
 4. Or click **MANUAL INSTALL** and place AIBot.exe in the opened folder
 5. Restart launcher after bot installation
